@@ -1,0 +1,6 @@
+Status: 500
+Response: {
+  "error": "AI Analysis Failed",
+  "details": "ANTHROPIC_API_KEY is missing in environment variables",
+  "suggestion": "Please ensure ANTHROPIC_API_KEY is correctly configured for production."
+}
