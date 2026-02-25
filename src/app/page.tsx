@@ -374,7 +374,18 @@ export default function HomePage() {
             </Grid>
           </Grid>
           <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 3 }} />
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 2 }}>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 6 }}>
+            <Box sx={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', border: '3px solid', borderColor: 'secondary.main', mb: 2, boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)' }}>
+              <img src="/nitin.png" alt="Nitin Chugh" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </Box>
+            <Typography variant="body1" color="white" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              Developed by <Typography component="span" fontWeight="900" sx={{ color: 'secondary.main', fontSize: '1.1rem', letterSpacing: 1 }}>NITIN CHUGH</Typography>
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', mt: 1 }}>Full Stack AI Architect</Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 2, alignItems: 'center' }}>
             <Typography variant="caption">© 2026 ClaimSettle AI. All rights reserved.</Typography>
             <Typography variant="caption">Privacy Policy · Terms of Use · Grievance Redressal</Typography>
           </Box>

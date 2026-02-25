@@ -150,14 +150,13 @@ export default function OfficerSidebar() {
                         </ListItemButton>
                     </ListItem>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderTop: '1px solid rgba(255,255,255,0.1)', pt: 2 }}>
-                        <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: '#047857', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                            AO
+                    {/* Developer Credit */}
+                    <Box sx={{ display: open ? 'flex' : 'none', flexDirection: 'column', alignItems: 'center', p: 2, mt: 2, borderRadius: 3, bgcolor: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                        <Box sx={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', border: '2px solid', borderColor: 'secondary.main', mb: 1.5, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                            <img src="/nitin.png" alt="Nitin Chugh" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </Box>
-                        <Box>
-                            <Typography variant="body2" fontWeight="bold">Arun Officer</Typography>
-                            <Typography variant="caption" sx={{ color: '#94a3b8' }}>Claims Dept</Typography>
-                        </Box>
+                        <Typography variant="caption" sx={{ color: '#94a3b8', mb: 0.5, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.65rem' }}>Developed By</Typography>
+                        <Typography variant="body2" fontWeight="bold" sx={{ color: 'white' }}>Nitin Chugh</Typography>
                     </Box>
                 </Box>
             </Drawer>
