@@ -1,29 +1,40 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { ClaimFormData } from '@/app/claim/new/page';
+import type { AIDamageItem } from '@/types';
 import {
     Box,
     Typography,
-    Card,
-    CardContent,
-    CardHeader,
+    Paper,
+    Grid,
     Button,
-    Chip,
-    Tabs,
-    Tab,
-    Divider,
+    Avatar,
     Checkbox,
     FormControlLabel,
+    Tabs,
+    Tab,
+    Chip,
+    Divider,
+    Stack,
+    IconButton
 } from '@mui/material';
 import {
     ChevronLeft as ChevronLeftIcon,
-    ChevronRight as ChevronRightIcon,
+    ArrowForward as ArrowRightIcon,
     TrendingDown as TrendingDownIcon,
-    WarningAmber as AlertTriangleIcon,
+    Warning as AlertTriangleIcon,
+    CheckCircle as CheckCircleIcon,
+    Shield as ShieldCheckIcon,
+    CreditCard as CreditCardIcon,
+    Assignment as ClipboardListIcon,
+    ReportProblem as ShieldAlertIcon,
+    CurrencyRupee as IndianRupeeIcon,
+    Info as InfoIcon,
+    Insights as ActivityIcon,
+    ErrorOutline as AlertCircleIcon
 } from '@mui/icons-material';
-import type { ClaimFormData } from '@/app/claim/new/page';
-import type { AIDamageItem } from '@/types';
 
 interface Props {
     formData: ClaimFormData;
@@ -32,260 +43,307 @@ interface Props {
 }
 
 function DamageItemCard({ item }: { item: AIDamageItem }) {
-    const severityColors: any = {
-        minor: { bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' },
-        moderate: { bg: '#fef3c7', color: '#b45309', border: '#fde68a' },
-        severe: { bg: '#fee2e2', color: '#b91c1c', border: '#fecaca' },
-        total: { bg: '#fef2f2', color: '#991b1b', border: '#fca5a5' },
+    const sevConfig: Record<string, { bg: string; color: string; bgcolor: string }> = {
+        minor: { bg: 'rgba(59,130,196,0.08)', color: '#2D5F9E', bgcolor: 'rgba(45, 95, 158, 0.05)' },
+        moderate: { bg: 'rgba(229,160,32,0.08)', color: '#92400E', bgcolor: 'rgba(229, 160, 32, 0.05)' },
+        severe: { bg: 'rgba(214,64,69,0.08)', color: '#D32F2F', bgcolor: 'rgba(214, 64, 69, 0.05)' },
     };
-
-    const recColors: any = {
-        repair: { bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' },
-        replace: { bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
-        supplement: { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-    };
-
-    const sev = severityColors[item.damage_severity] || severityColors.minor;
-    const rec = recColors[item.ai_recommendation] || recColors.repair;
+    const sev = sevConfig[item.damage_severity] || sevConfig.minor;
 
     return (
-        <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, mb: 2 }}>
-            <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">{item.part_name}</Typography>
-                        <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-                            <Chip
-                                label={item.damage_severity.toUpperCase()}
-                                size="small"
-                                sx={{ bgcolor: sev.bg, color: sev.color, borderColor: sev.border, fontWeight: 'bold', fontSize: '0.65rem', height: 20 }}
-                                variant="outlined"
-                            />
-                            <Chip
-                                label={item.ai_recommendation.toUpperCase()}
-                                size="small"
-                                sx={{ bgcolor: rec.bg, color: rec.color, borderColor: rec.border, fontWeight: 'bold', fontSize: '0.65rem', height: 20 }}
-                                variant="outlined"
-                            />
+        <Paper sx={{
+            p: 3, borderRadius: '16px', border: '1px solid #CBD8EA',
+            boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)',
+            transition: 'all 0.2s ease',
+            '&:hover': { borderColor: '#2D5F9E', boxShadow: '0 4px 16px rgba(30, 58, 95, 0.1)' }
+        }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F', mb: 1 }}>{item.part_name}</Typography>
+                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                        <Chip
+                            label={item.damage_severity.toUpperCase()}
+                            size="small"
+                            sx={{ bgcolor: sev.bg, color: sev.color, fontWeight: 800, fontSize: '0.65rem' }}
+                        />
+                        <Chip
+                            label={item.ai_recommendation.toUpperCase()}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontWeight: 800, fontSize: '0.65rem', borderColor: '#CBD8EA', color: '#5B7692' }}
+                        />
+                    </Stack>
+                    <Grid container spacing={4}>
+                        <Grid>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>Net Estimate</Typography>
+                            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.subtotal_net.toLocaleString()}</Typography>
+                        </Grid>
+                        <Grid>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>AI Confidence</Typography>
+                            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#2D5F9E' }}>{item.confidence.toFixed(0)}%</Typography>
+                        </Grid>
+                    </Grid>
+                </Box>
+                <Paper sx={{ p: 2, bgcolor: '#F8FAFD', borderRadius: '12px', border: '1px solid #CBD8EA', minWidth: 140 }}>
+                    <Stack spacing={0.5}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#5B7692' }}>OEM PRICE</Typography>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.oem_price.toLocaleString()}</Typography>
                         </Box>
-                    </Box>
-                    <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="subtitle1" fontWeight="bold">₹{item.subtotal_net.toLocaleString('en-IN')}</Typography>
-                        <Typography variant="caption" color="text.secondary" display="block">net payable</Typography>
-                    </Box>
-                </Box>
-
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 1 }}>
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" display="block">OEM Part</Typography>
-                        <Typography variant="body2" fontWeight="500">₹{item.oem_price.toLocaleString('en-IN')}</Typography>
-                    </Box>
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" display="block">Labour</Typography>
-                        <Typography variant="body2" fontWeight="500">₹{item.labor_cost.toLocaleString('en-IN')}</Typography>
-                    </Box>
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" display="block">Depreciation</Typography>
-                        <Typography variant="body2" color="error.main" fontWeight="500">-₹{item.depreciation_amount.toLocaleString('en-IN')} ({item.depreciation_rate}%)</Typography>
-                    </Box>
-                </Box>
-
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                    AI Confidence: {item.confidence.toFixed(0)}%
-                </Typography>
-            </CardContent>
-        </Card>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#5B7692' }}>LABOR</Typography>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.labor_cost.toLocaleString()}</Typography>
+                        </Box>
+                        <Divider sx={{ my: 0.5, borderColor: '#CBD8EA' }} />
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#D32F2F' }}>DEPR.</Typography>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#D32F2F' }}>-{item.depreciation_rate}%</Typography>
+                        </Box>
+                    </Stack>
+                </Paper>
+            </Box>
+        </Paper>
     );
 }
 
 export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
     const [agreed, setAgreed] = useState(false);
-    const [tabValue, setTabValue] = useState(0);
-    const analysis = formData.aiAnalysis!;
-    const policy = formData.policy!;
+    const [activeTab, setActiveTab] = useState(0);
+    const analysis = formData.aiAnalysis;
+    const policy = formData.policy;
+
+    if (!analysis || !policy) {
+        return (
+            <Box sx={{ width: '100%', textAlign: 'center', p: 8 }}>
+                <AlertCircleIcon sx={{ fontSize: 48, color: '#D32F2F', mb: 2 }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>Analysis Data Missing</Typography>
+                <Typography variant="body2" sx={{ color: '#5B7692', mb: 4 }}>We couldn't retrieve the analysis data. Please try again.</Typography>
+                <Button onClick={onBack} variant="contained" sx={{ bgcolor: '#1E3A5F' }}>Go Back</Button>
+            </Box>
+        );
+    }
+
     const est = analysis.total_estimate;
 
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setTabValue(newValue);
-    };
+    const recConfig = {
+        auto_approve: { title: 'Auto-Approval Confirmed', icon: ShieldCheckIcon, isGreen: true },
+        manual_review: { title: 'Officer Validation Required', icon: InfoIcon, isGreen: false },
+        escalate: { title: 'Anomalies Detected — Escalated', icon: AlertTriangleIcon, isGreen: false },
+        reject: { title: 'Claim Flagged for Rejection', icon: ShieldAlertIcon, isGreen: false },
+    }[analysis.recommendation] || { title: 'Status Unknown', icon: InfoIcon, isGreen: false };
 
-    const recDetails = {
-        auto_approve: { text: '✅ Auto-Approval Recommended', bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' },
-        manual_review: { text: '⏳ Officer Review Recommended', bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
-        escalate: { text: '⚠️ Escalation Required', bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' },
-        reject: { text: '❌ Claim Not Eligible', bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' },
-    }[analysis.recommendation] || { text: 'Unknown', bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' };
+    const Icon = recConfig.icon;
+
+    const tabLabels = [
+        { label: `Damage Items (${analysis.damage_items.length})`, icon: <ClipboardListIcon sx={{ fontSize: 18 }} /> },
+        { label: 'Financial Breakdown', icon: <CreditCardIcon sx={{ fontSize: 18 }} /> },
+        { label: `Warnings (${analysis.fraud_indicators.length})`, icon: <ShieldAlertIcon sx={{ fontSize: 18 }} />, disabled: analysis.fraud_indicators.length === 0 },
+    ];
 
     return (
-        <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
-            <Box sx={{ mb: 4, textAlign: 'center' }}>
-                <Typography variant="h4" fontWeight="bold" gutterBottom>AI Damage Assessment</Typography>
-                <Typography variant="body1" color="text.secondary">
-                    {policy.vehicle_make} {policy.vehicle_model} {policy.vehicle_year} &mdash; Claim {formData.claimNumber}
+        <Box sx={{ width: '100%', maxWidth: 680, mx: 'auto' }}>
+            {/* Header */}
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <Typography variant="h4" sx={{
+                    fontFamily: '"DM Serif Display", serif',
+                    color: '#1E3A5F',
+                    mb: 1,
+                    fontWeight: 700
+                }}>
+                    Assessment Results
                 </Typography>
+                <Stack direction="row" spacing={1.5} justifyContent="center" alignItems="center">
+                    <Typography variant="body2" fontWeight="bold" sx={{ color: '#5B7692' }}>{policy.vehicle_make} {policy.vehicle_model}</Typography>
+                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#CBD8EA' }} />
+                    <Typography variant="body2" fontWeight="bold" sx={{ color: '#2D5F9E' }}>Claim #{formData.claimNumber}</Typography>
+                </Stack>
             </Box>
 
-            {/* Summary bar */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}>
-                    <Card elevation={0} sx={{ bgcolor: 'rgba(37, 99, 235, 0.05)', borderRadius: 3, height: '100%' }}>
-                        <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>AI Confidence</Typography>
-                            <Typography variant="h3" fontWeight="900" color="primary.main">{analysis.confidence_score.toFixed(0)}%</Typography>
-                        </CardContent>
-                    </Card>
-                </motion.div>
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
-                    <Card elevation={0} sx={{ bgcolor: 'rgba(16, 185, 129, 0.05)', borderRadius: 3, height: '100%' }}>
-                        <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>Estimated Payable</Typography>
-                            <Typography variant="h3" fontWeight="900" color="success.main">₹{est.final_claim_amount.toLocaleString('en-IN')}</Typography>
-                        </CardContent>
-                    </Card>
-                </motion.div>
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-                    <Card elevation={0} sx={{ bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 3, height: '100%' }}>
-                        <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>Fraud Risk</Typography>
-                            <Typography variant="h3" fontWeight="900" color="text.primary">
-                                {analysis.fraud_indicators.length === 0 ? 'LOW' : 'MEDIUM'}
-                            </Typography>
-                        </CardContent>
-                    </Card>
-                </motion.div>
-            </Box>
+            {/* Top metrics */}
+            <Grid container spacing={2} sx={{ mb: 4 }}>
+                {[
+                    { label: 'AI Accuracy', val: `${analysis.confidence_score.toFixed(0)}%`, color: '#2D5F9E' },
+                    { label: 'Settlement Amount', val: `₹${est.final_claim_amount.toLocaleString()}`, color: '#0F9D6A' },
+                    { label: 'Risk Level', val: analysis.fraud_indicators.length === 0 ? 'Low' : 'Moderate', color: '#1E3A5F' },
+                ].map((stat) => (
+                    <Grid size={{ xs: 4 }} key={stat.label}>
+                        <Paper sx={{ p: 2.5, borderRadius: '16px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: '#8DA5BE', display: 'block', mb: 0.5 }}>{stat.label}</Typography>
+                            <Typography variant="h5" fontWeight="800" sx={{ color: stat.color, letterSpacing: -0.5 }}>{stat.val}</Typography>
+                        </Paper>
+                    </Grid>
+                ))}
+            </Grid>
 
             {/* Recommendation banner */}
-            <Box sx={{ p: 2, borderRadius: 2, mb: 4, bgcolor: recDetails.bg, color: recDetails.color, border: `1px solid ${recDetails.border}` }}>
-                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{recDetails.text}</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>{analysis.recommendation_reason}</Typography>
-            </Box>
+            <Paper sx={{
+                p: 3, borderRadius: '16px', mb: 4,
+                border: `1.5px solid ${recConfig.isGreen ? 'rgba(15,157,106,0.3)' : 'rgba(45,95,158,0.3)'}`,
+                bgcolor: recConfig.isGreen ? 'rgba(15, 157, 106, 0.04)' : 'rgba(45, 95, 158, 0.04)',
+                display: 'flex', alignItems: 'center', gap: 3
+            }}>
+                <Avatar sx={{
+                    width: 48, height: 48, borderRadius: '12px',
+                    bgcolor: recConfig.isGreen ? 'rgba(15, 157, 106, 0.1)' : 'rgba(45, 95, 158, 0.1)',
+                    color: recConfig.isGreen ? '#0F9D6A' : '#2D5F9E'
+                }}>
+                    <Icon sx={{ fontSize: 24 }} />
+                </Avatar>
+                <Box>
+                    <Typography variant="subtitle1" fontWeight="bold" sx={{ color: recConfig.isGreen ? '#065F46' : '#1E3A5F', mb: 0.5 }}>{recConfig.title}</Typography>
+                    <Typography variant="body2" sx={{ color: '#5B7692', lineHeight: 1.5 }}>{analysis.recommendation_reason}</Typography>
+                </Box>
+            </Paper>
 
-            <Box sx={{ width: '100%', mb: 4 }}>
-                <Tabs value={tabValue} onChange={handleTabChange} variant="fullWidth" sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                    <Tab label={`Damage Items (${analysis.damage_items.length})`} sx={{ fontWeight: 'bold' }} />
-                    <Tab label="Financial Summary" sx={{ fontWeight: 'bold' }} />
-                    {analysis.fraud_indicators.length > 0 && (
-                        <Tab label={`Flags (${analysis.fraud_indicators.length})`} sx={{ fontWeight: 'bold' }} />
-                    )}
-                </Tabs>
-            </Box>
+            {/* Tabs */}
+            <Tabs
+                value={activeTab}
+                onChange={(_, val) => setActiveTab(val)}
+                sx={{
+                    mb: 3, borderBottom: '1px solid #CBD8EA',
+                    '& .MuiTab-root': {
+                        minWidth: 0, px: 2, fontSize: '0.85rem', fontWeight: 800, color: '#8DA5BE',
+                        textTransform: 'none',
+                        '&.Mui-selected': { color: '#2D5F9E' }
+                    },
+                    '& .MuiTabs-indicator': { bgcolor: '#2D5F9E', height: 3, borderRadius: '3px 3px 0 0' }
+                }}
+            >
+                {tabLabels.map((tab, i) => (
+                    <Tab key={i} icon={tab.icon} iconPosition="start" label={tab.label} disabled={tab.disabled} />
+                ))}
+            </Tabs>
 
+            {/* Tab content */}
             <Box sx={{ minHeight: 400 }}>
-                {tabValue === 0 && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {analysis.damage_items.map((item, i) => (
-                            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-                                <DamageItemCard item={item} />
-                            </motion.div>
-                        ))}
-                    </Box>
-                )}
+                <AnimatePresence mode="wait">
+                    {activeTab === 0 && (
+                        <motion.div key="items" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                            <Stack spacing={2}>
+                                {analysis.damage_items.map((item, i) => <DamageItemCard key={i} item={item} />)}
+                            </Stack>
+                        </motion.div>
+                    )}
 
-                {tabValue === 1 && (
-                    <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-                        <CardHeader
-                            title={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <TrendingDownIcon color="primary" />
-                                    <Typography variant="h6" fontWeight="bold">Financial Breakdown</Typography>
+                    {activeTab === 1 && (
+                        <motion.div key="finance" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                            <Paper sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
+                                <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
+                                    <TrendingDownIcon sx={{ fontSize: 20, color: '#2D5F9E' }} />
+                                    <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1E3A5F' }}>Financial Breakdown</Typography>
                                 </Box>
-                            }
-                            sx={{ pb: 1 }}
-                        />
-                        <CardContent sx={{ pt: 1 }}>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                                {[
-                                    { label: 'Gross Repair / Replacement Cost', val: est.gross_repair_cost, color: 'text.primary', fontWeight: 'normal' },
-                                    { label: '(-) Depreciation Applied', val: -est.total_depreciation, color: 'error.main', fontWeight: 'normal' },
-                                    { label: 'Net Admissible Amount', val: est.net_repair_cost, color: 'text.primary', fontWeight: 'bold' },
-                                    { label: '(-) Compulsory Deductible', val: -est.compulsory_deductible, color: 'error.main', fontWeight: 'normal' },
-                                ].map((row, i) => (
-                                    <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Typography variant="body2" color="text.secondary">{row.label}</Typography>
-                                        <Typography variant="body2" color={row.color} fontWeight={row.fontWeight}>
-                                            ₹{Math.abs(row.val).toLocaleString('en-IN')}
-                                        </Typography>
-                                    </Box>
-                                ))}
-
-                                <Divider sx={{ my: 1 }} />
-
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Typography variant="subtitle1" fontWeight="bold">FINAL CLAIM PAYABLE</Typography>
-                                    <Typography variant="h6" fontWeight="900" color="success.main">
-                                        ₹{est.final_claim_amount.toLocaleString('en-IN')}
-                                    </Typography>
-                                </Box>
-
-                                <Chip
-                                    label={est.limit_check}
-                                    size="small"
-                                    sx={{
-                                        alignSelf: 'flex-start',
-                                        bgcolor: est.within_limit ? '#ecfdf5' : '#fef2f2',
-                                        color: est.within_limit ? '#047857' : '#b91c1c',
-                                        fontWeight: 'bold',
-                                    }}
-                                />
-                            </Box>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {tabValue === 2 && analysis.fraud_indicators.length > 0 && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {analysis.fraud_indicators.map((flag, i) => (
-                            <Card key={i} elevation={0} sx={{ border: '1px solid #fde68a', bgcolor: '#fffbeb', borderRadius: 3 }}>
-                                <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                                        <AlertTriangleIcon sx={{ color: '#d97706', mt: 0.5 }} />
-                                        <Box>
-                                            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#92400e' }}>
-                                                {flag.type.replace(/_/g, ' ').toUpperCase()}
-                                            </Typography>
-                                            <Typography variant="body2" sx={{ color: '#b45309', mt: 0.5 }}>
-                                                {flag.description}
-                                            </Typography>
-                                            <Typography variant="caption" sx={{ color: '#d97706', mt: 1, display: 'block', fontWeight: 'bold' }}>
-                                                Confidence: {flag.confidence}%
+                                <Box sx={{ p: 3 }}>
+                                    {[
+                                        { label: 'Gross Repair Cost', val: est.gross_repair_cost, minus: false },
+                                        { label: 'Depreciation Deduction', val: -est.total_depreciation, minus: true },
+                                        { label: 'Net Repair Value', val: est.net_repair_cost, minus: false, highlight: true },
+                                        { label: 'Compulsory Deductible', val: -est.compulsory_deductible, minus: true },
+                                    ].map((row, i) => (
+                                        <Box key={i} sx={{
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                            px: 2, py: 1.5, borderRadius: '10px', mb: row.highlight ? 1 : 0,
+                                            bgcolor: row.highlight ? 'rgba(45, 95, 158, 0.04)' : 'transparent'
+                                        }}>
+                                            <Typography variant="caption" sx={{
+                                                fontWeight: row.highlight ? 800 : 600,
+                                                color: row.highlight ? '#1E3A5F' : '#5B7692',
+                                                textTransform: 'uppercase', letterSpacing: 0.5
+                                            }}>{row.label}</Typography>
+                                            <Typography variant="body1" fontWeight="bold" sx={{ color: row.minus ? '#D32F2F' : '#1E3A5F' }}>
+                                                ₹{Math.abs(row.val).toLocaleString()}
                                             </Typography>
                                         </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        ))}
-                        <Typography variant="caption" color="text.secondary" align="center" display="block" mt={2}>
-                            Fraud flags are advisory. A claims officer will review all flagged items.
-                        </Typography>
-                    </Box>
-                )}
+                                    ))}
+
+                                    <Paper sx={{
+                                        mt: 2, p: 3, borderRadius: '16px',
+                                        bgcolor: 'rgba(15, 157, 106, 0.05)',
+                                        border: '1.5px solid rgba(15, 157, 106, 0.2)',
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}>
+                                        <Box>
+                                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F9D6A', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>Final Settlement Payable</Typography>
+                                            <Typography variant="h4" fontWeight="900" sx={{ color: '#065F46', letterSpacing: -1 }}>₹{est.final_claim_amount.toLocaleString()}</Typography>
+                                        </Box>
+                                        <Chip
+                                            label={est.limit_check.toUpperCase()}
+                                            sx={{ bgcolor: 'rgba(15, 157, 106, 0.1)', color: '#0F9D6A', fontWeight: 900, fontSize: '0.65rem' }}
+                                        />
+                                    </Paper>
+                                </Box>
+                            </Paper>
+                        </motion.div>
+                    )}
+
+                    {activeTab === 2 && (
+                        <motion.div key="flags" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                            <Stack spacing={2}>
+                                {analysis.fraud_indicators.map((flag, i) => (
+                                    <Paper key={i} sx={{
+                                        p: 3, borderRadius: '16px', border: '1.5px solid rgba(211, 47, 47, 0.15)',
+                                        bgcolor: 'rgba(211, 47, 47, 0.02)', position: 'relative', overflow: 'hidden'
+                                    }}>
+                                        <Box sx={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', bgcolor: 'rgba(211, 47, 47, 0.3)' }} />
+                                        <Stack direction="row" spacing={2.5}>
+                                            <Avatar sx={{ bgcolor: 'rgba(211, 47, 47, 0.08)', color: '#D32F2F', borderRadius: '12px' }}>
+                                                <AlertTriangleIcon />
+                                            </Avatar>
+                                            <Box sx={{ flex: 1 }}>
+                                                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#D32F2F', mb: 0.5, textTransform: 'capitalize' }}>{flag.type.replace(/_/g, ' ')}</Typography>
+                                                <Typography variant="body2" sx={{ color: '#5B7692', mb: 1.5, lineHeight: 1.5 }}>{flag.description}</Typography>
+                                                <Chip
+                                                    icon={<ActivityIcon sx={{ fontSize: '14px !important' }} />}
+                                                    label={`CONFIDENCE: ${flag.confidence}%`}
+                                                    size="small"
+                                                    sx={{ bgcolor: 'rgba(211, 47, 47, 0.06)', color: '#D32F2F', fontWeight: 800, fontSize: '0.65rem', border: '1px solid rgba(211, 47, 47, 0.15)' }}
+                                                />
+                                            </Box>
+                                        </Stack>
+                                    </Paper>
+                                ))}
+                                <Paper sx={{ p: 2.5, borderRadius: '12px', border: '1.5px dashed #CBD8EA', bgcolor: '#F8FAFD', textAlign: 'center' }}>
+                                    <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
+                                        Flags are advisory. Officer portal override is available.
+                                    </Typography>
+                                </Paper>
+                            </Stack>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </Box>
 
-            {/* Declaration */}
-            <Card elevation={0} sx={{ mt: 4, mb: 4, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 3 }}>
-                <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
-                    <FormControlLabel
-                        control={<Checkbox checked={agreed} onChange={e => setAgreed(e.target.checked)} color="primary" />}
-                        label={
-                            <Typography variant="caption" color="text.secondary">
-                                I declare that the information provided and photos uploaded are true and correct to the best of my knowledge.
-                                I understand that furnishing false information is an offence and may result in claim rejection and legal action.
-                                I agree to the terms of the assessment generated by the AI system as per IRDAI guidelines.
+            {/* Consent */}
+            <Paper sx={{ mt: 5, p: 3, borderRadius: '16px', bgcolor: '#F8FAFD', border: '1px solid #CBD8EA' }}>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={agreed}
+                            onChange={(e) => setAgreed(e.target.checked)}
+                            sx={{ color: '#CBD8EA', '&.Mui-checked': { color: '#2D5F9E' } }}
+                        />
+                    }
+                    label={
+                        <Box>
+                            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1E3A5F', mb: 0.5 }}>Digital Declaration</Typography>
+                            <Typography variant="caption" sx={{ color: '#5B7692', lineHeight: 1.5, display: 'block' }}>
+                                I confirm that all evidence and information provided is authentic. Submitting false claims is a violation of IRDA guidelines and may result in legal action.
                             </Typography>
-                        }
-                        sx={{ alignItems: 'flex-start', m: 0 }}
-                    />
-                </CardContent>
-            </Card>
+                        </Box>
+                    }
+                    sx={{ alignItems: 'flex-start', m: 0 }}
+                />
+            </Paper>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            {/* Actions */}
+            <Box sx={{ display: 'flex', gap: 2, mt: 4, pt: 4, borderTop: '1px solid #CBD8EA' }}>
                 <Button
-                    variant="outlined"
-                    color="inherit"
                     onClick={onBack}
+                    variant="outlined"
                     startIcon={<ChevronLeftIcon />}
-                    sx={{ flex: 1, py: 1.5, fontWeight: 'bold' }}
+                    sx={{
+                        px: 4, py: 1.5, borderRadius: '12px', borderColor: '#CBD8EA', color: '#5B7692', fontWeight: 600,
+                        '&:hover': { borderColor: '#2D5F9E', color: '#2D5F9E' }
+                    }}
                 >
                     Back
                 </Button>
@@ -293,11 +351,17 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
                     disabled={!agreed}
                     onClick={onSubmit}
                     variant="contained"
-                    color="success"
-                    endIcon={<ChevronRightIcon />}
-                    sx={{ flex: 1, py: 1.5, fontWeight: 'bold' }}
+                    fullWidth
+                    endIcon={<ArrowRightIcon />}
+                    sx={{
+                        py: 1.8, borderRadius: '12px', bgcolor: agreed ? '#2D5F9E' : '#F0F6FF',
+                        color: agreed ? 'white' : '#8DA5BE', fontWeight: 800,
+                        boxShadow: agreed ? '0 6px 20px rgba(45, 95, 158, 0.2)' : 'none',
+                        '&:hover': { bgcolor: agreed ? '#1E3A5F' : '#F0F6FF', transform: agreed ? 'translateY(-2px)' : 'none' },
+                        transition: 'all 0.3s ease'
+                    }}
                 >
-                    Submit Claim
+                    Authorize Claim Submission
                 </Button>
             </Box>
         </Box>

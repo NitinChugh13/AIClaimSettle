@@ -1,14 +1,43 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Shield, Clock, AlertCircle, CheckCircle, Search, FileText } from 'lucide-react'
+import {
+    Container,
+    Box,
+    Typography,
+    Button,
+    Card,
+    CardContent,
+    TextField,
+    Grid,
+    Chip,
+    Avatar,
+    IconButton,
+    InputAdornment,
+    Divider,
+    CircularProgress,
+    AppBar,
+    Toolbar,
+    useTheme,
+    useMediaQuery
+} from '@mui/material'
+import {
+    Shield as ShieldIcon,
+    AccessTime as ClockIcon,
+    ErrorOutline as AlertCircleIcon,
+    CheckCircle as CheckCircleIcon,
+    Search as SearchIcon,
+    Description as FileTextIcon,
+    FlashOn as FlashOnIcon,
+    CurrencyRupee as IndianRupeeIcon,
+    TrendingUp as TrendingUpIcon,
+    ArrowForward as ArrowRightIcon,
+    ExitToApp as LogoutIcon
+} from '@mui/icons-material'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { motion, AnimatePresence } from 'framer-motion'
+import Logo from '@/components/Logo'
 
 interface ClaimRecord {
     id: string
@@ -21,14 +50,30 @@ interface ClaimRecord {
     createdAt: string
 }
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+}
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+}
+
 export default function UserDashboard() {
     const [policyNumber, setPolicyNumber] = useState('')
     const [loading, setLoading] = useState(false)
     const [claims, setClaims] = useState<ClaimRecord[]>([])
     const [searched, setSearched] = useState(false)
     const [error, setError] = useState('')
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-    // Try to auto-login if they just filed a claim
     useEffect(() => {
         const savedPolicy = localStorage.getItem('lastPolicyNumber')
         if (savedPolicy) {
@@ -61,115 +106,326 @@ export default function UserDashboard() {
         }
     }
 
-    const getStatusColor = (status: string) => {
+    const getStatusProps = (status: string) => {
         switch (status) {
-            case 'approved': return 'bg-emerald-100 text-emerald-700 border-emerald-300'
-            case 'pending': return 'bg-amber-100 text-amber-700 border-amber-300'
-            case 'rejected': return 'bg-red-100 text-red-700 border-red-300'
-            case 'escalated': return 'bg-purple-100 text-purple-700 border-purple-300'
-            case 'settled': return 'bg-blue-100 text-blue-700 border-blue-300'
-            default: return 'bg-slate-100 text-slate-700 border-slate-300'
+            case 'approved': return { color: '#0F9D6A', label: 'Approved', icon: <CheckCircleIcon /> }
+            case 'pending': return { color: '#E5A020', label: 'Pending', icon: <ClockIcon /> }
+            case 'rejected': return { color: '#D64045', label: 'Rejected', icon: <AlertCircleIcon /> }
+            case 'escalated': return { color: '#6B5FD6', label: 'Escalated', icon: <AlertCircleIcon /> }
+            case 'settled': return { color: '#2D5F9E', label: 'Settled', icon: <CheckCircleIcon /> }
+            default: return { color: '#8DA5BE', label: status, icon: <FileTextIcon /> }
         }
     }
 
+    const totalSettled = claims.filter(c => c.status === 'settled').reduce((acc, curr) => acc + curr.totalAmount, 0)
+    const pendingClaims = claims.filter(c => c.status === 'pending').length
+
     return (
-        <div className="max-w-4xl mx-auto py-8 px-4">
-            <div className="mb-8 border-b pb-6">
-                <div className="flex items-center gap-3 mb-2">
-                    <Shield className="w-8 h-8 text-blue-800" />
-                    <h1 className="text-3xl font-bold text-slate-900">My Claim History</h1>
-                </div>
-                <p className="text-slate-500">Access your historical claims securely using your policy number.</p>
-            </div>
-
-            <Card className="mb-8 border-blue-100">
-                <CardContent className="pt-6">
-                    <form onSubmit={handleSearch} className="flex gap-4 items-end">
-                        <div className="flex-1 space-y-2">
-                            <Label htmlFor="policySearch">Insurance Policy Number</Label>
-                            <Input
-                                id="policySearch"
-                                placeholder="e.g. POL-123456"
-                                className="font-mono text-lg"
-                                value={policyNumber}
-                                onChange={(e) => setPolicyNumber(e.target.value)}
-                            />
-                        </div>
+        <Box sx={{ minHeight: '100vh', bgcolor: '#F0F6FF' }} className="page-gradient-static">
+            {/* Header */}
+            <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'white', borderBottom: '1px solid #CBD8EA' }}>
+                <Toolbar sx={{ justifyContent: 'space-between', maxWidth: '1200px', mx: 'auto', width: '100%', px: { xs: 2, md: 4 } }}>
+                    <Link href="/" style={{ textDecoration: 'none' }}>
+                        <Logo variant="dark" />
+                    </Link>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
                         <Button
-                            type="submit"
-                            disabled={loading || policyNumber.length < 5}
-                            className="bg-blue-800 text-white hover:bg-blue-900 h-10 px-8"
+                            component={Link}
+                            href="/claim/track"
+                            variant="text"
+                            sx={{ color: '#4A6080', fontWeight: 600, display: { xs: 'none', sm: 'flex' } }}
                         >
-                            {loading ? 'Searching...' : 'Secure Login'}
+                            Track View
                         </Button>
-                    </form>
-                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-                </CardContent>
-            </Card>
-
-            {searched && (
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-slate-900">Found {claims.length} Claims</h2>
-                        <Button variant="outline" asChild size="sm">
-                            <Link href="/claim/new">File New Claim</Link>
+                        <Button
+                            component={Link}
+                            href="/claim/new"
+                            variant="contained"
+                            sx={{
+                                background: 'linear-gradient(135deg, #1E3A5F, #2D5F9E)',
+                                fontWeight: 700,
+                                px: 3,
+                                borderRadius: '10px'
+                            }}
+                        >
+                            ⚡ Nova Strike
                         </Button>
-                    </div>
+                    </Box>
+                </Toolbar>
+            </AppBar>
 
-                    {claims.length === 0 ? (
-                        <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200 border-dashed">
-                            <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                            <h3 className="text-lg font-medium text-slate-900">No claims found</h3>
-                            <p className="text-slate-500">There are no claims associated with {policyNumber}.</p>
-                        </div>
-                    ) : (
-                        <div className="grid gap-4">
-                            {claims.map((claim) => (
-                                <Card key={claim.id} className="hover:border-blue-300 transition-colors">
-                                    <CardContent className="p-6">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                            <div>
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <span className="font-mono font-bold text-lg text-blue-900">{claim.id}</span>
-                                                    <Badge className={getStatusColor(claim.status)} variant="outline">
-                                                        {claim.status.toUpperCase()}
-                                                    </Badge>
-                                                </div>
-                                                <div className="text-slate-500 text-sm flex items-center gap-2">
-                                                    <Clock className="w-4 h-4" />
-                                                    Filed: {format(new Date(claim.createdAt), 'dd MMM yyyy, p')}
-                                                </div>
-                                            </div>
+            <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
+                {!searched ? (
+                    <Box sx={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{ width: '100%', maxWidth: '500px' }}
+                        >
+                            <Card sx={{
+                                borderRadius: '24px',
+                                boxShadow: '0 12px 40px rgba(30, 58, 95, 0.12)',
+                                p: { xs: 3, md: 5 },
+                                textAlign: 'center',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <Box sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '6px',
+                                    background: 'linear-gradient(90deg, #1E3A5F, #3B82C4)'
+                                }} />
 
-                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-                                                <div>
-                                                    <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">Vehicle</div>
-                                                    <div className="font-medium">{claim.vehicleReg}</div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">Incident</div>
-                                                    <div className="font-medium">{claim.incidentType}</div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">Estimate</div>
-                                                    <div className="font-medium text-emerald-700">₹{claim.totalAmount.toLocaleString('en-IN')}</div>
-                                                </div>
-                                                <div className="flex items-center justify-end">
-                                                    <Button variant="secondary" asChild className="w-full">
-                                                        <Link href={`/claim/track?id=${claim.id}`}>
-                                                            Live Track →
-                                                        </Link>
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                <Avatar sx={{
+                                    width: 80,
+                                    height: 80,
+                                    bgcolor: 'rgba(45, 95, 158, 0.1)',
+                                    color: '#2D5F9E',
+                                    mx: 'auto',
+                                    mb: 3
+                                }}>
+                                    <FlashOnIcon sx={{ fontSize: 40 }} />
+                                </Avatar>
+
+                                <Typography variant="h5" fontWeight="800" sx={{ color: '#1A2B3C', mb: 1 }}>
+                                    Secure Access
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: '#4A6080', mb: 4 }}>
+                                    Enter your policy number to retrieve your claim history.
+                                </Typography>
+
+                                <form onSubmit={handleSearch}>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                        <TextField
+                                            fullWidth
+                                            label="Policy Number"
+                                            placeholder="POL-XXXXXX"
+                                            variant="outlined"
+                                            value={policyNumber}
+                                            onChange={(e) => setPolicyNumber(e.target.value.toUpperCase())}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <ShieldIcon sx={{ color: '#8DA5BE' }} />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                        <Button
+                                            type="submit"
+                                            fullWidth
+                                            variant="contained"
+                                            size="large"
+                                            disabled={loading || policyNumber.length < 5}
+                                            sx={{
+                                                py: 2,
+                                                fontSize: '1.1rem',
+                                                fontWeight: 700,
+                                                background: 'linear-gradient(135deg, #1E3A5F, #2D5F9E)',
+                                                '&:hover': { background: '#1E3A5F' }
+                                            }}
+                                        >
+                                            {loading ? <CircularProgress size={24} color="inherit" /> : 'Enter Dashboard'}
+                                        </Button>
+                                    </Box>
+                                </form>
+                                {error && (
+                                    <Typography variant="body2" color="error" sx={{ mt: 2, fontWeight: 600 }}>
+                                        {error}
+                                    </Typography>
+                                )}
+                            </Card>
+                        </motion.div>
+                    </Box>
+                ) : (
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="show"
+                    >
+                        {/* Header Section */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 6, flexWrap: 'wrap', gap: 2 }}>
+                            <Box>
+                                <Typography variant="h5" fontWeight="900" sx={{ color: '#1A2B3C', mb: 0.5 }}>
+                                    Claim Dashboard
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: '#4A6080' }}>
+                                    Managing policy: <span style={{ fontWeight: 700, color: '#2D5F9E' }}>{policyNumber}</span>
+                                </Typography>
+                            </Box>
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                size="small"
+                                onClick={() => { setSearched(false); setPolicyNumber(''); localStorage.removeItem('lastPolicyNumber'); }}
+                                startIcon={<LogoutIcon />}
+                                sx={{ borderRadius: '8px' }}
+                            >
+                                Switch Policy
+                            </Button>
+                        </Box>
+
+                        {/* Stats Row */}
+                        <Grid container spacing={3} sx={{ mb: 6 }}>
+                            {[
+                                { label: 'Total Claims', value: claims.length, icon: <FileTextIcon />, color: '#2D5F9E' },
+                                { label: 'Settled Amount', value: `₹${totalSettled.toLocaleString('en-IN')}`, icon: <IndianRupeeIcon />, color: '#0F9D6A' },
+                                { label: 'Active Tasks', value: pendingClaims, icon: <TrendingUpIcon />, color: '#E5A020' },
+                            ].map((stat, i) => (
+                                <Grid size={{ xs: 12, sm: 4 }} key={i}>
+                                    <Card sx={{
+                                        borderRadius: '20px',
+                                        p: 3,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2.5,
+                                        border: '1px solid #CBD8EA',
+                                        transition: 'transform 0.2s',
+                                        '&:hover': { transform: 'translateY(-4px)' }
+                                    }}>
+                                        <Box sx={{
+                                            width: 56, height: 56, borderRadius: '15px',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            bgcolor: `${stat.color}11`, color: stat.color
+                                        }}>
+                                            {stat.icon}
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+                                                {stat.label}
+                                            </Typography>
+                                            <Typography variant="h6" fontWeight="900" sx={{ color: '#1A2B3C' }}>
+                                                {stat.value}
+                                            </Typography>
+                                        </Box>
+                                    </Card>
+                                </Grid>
                             ))}
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
+                        </Grid>
+
+                        {/* Claims List Header */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                            <Typography variant="h6" fontWeight="800" sx={{ color: '#1A2B3C' }}>
+                                Your Claims History
+                            </Typography>
+                            <Chip
+                                label={`${claims.length} Records`}
+                                size="small"
+                                sx={{ bgcolor: 'rgba(45, 95, 158, 0.08)', color: '#2D5F9E', fontWeight: 700 }}
+                            />
+                        </Box>
+
+                        {/* List Area */}
+                        {claims.length === 0 ? (
+                            <Card sx={{
+                                py: 10, textAlign: 'center', borderRadius: '24px',
+                                border: '2px dashed #CBD8EA', bgcolor: 'transparent', boxShadow: 'none'
+                            }}>
+                                <FileTextIcon sx={{ fontSize: 60, color: '#CBD8EA', mb: 2 }} />
+                                <Typography variant="h6" fontWeight="bold" sx={{ color: '#4A6080' }}>
+                                    No processing history found
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#8DA5BE' }}>
+                                    Any claims filed with this policy will appear here.
+                                </Typography>
+                            </Card>
+                        ) : (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                                <AnimatePresence>
+                                    {claims.map((claim) => {
+                                        const status = getStatusProps(claim.status)
+                                        return (
+                                            <motion.div
+                                                key={claim.id}
+                                                variants={itemVariants}
+                                            >
+                                                <Card sx={{
+                                                    borderRadius: '16px',
+                                                    border: '1px solid #CBD8EA',
+                                                    p: { xs: 2.5, md: 3 },
+                                                    transition: 'all 0.2s',
+                                                    '&:hover': {
+                                                        borderColor: '#2D5F9E',
+                                                        boxShadow: '0 8px 24px rgba(30, 58, 95, 0.08)'
+                                                    }
+                                                }}>
+                                                    <Grid container alignItems="center" spacing={3}>
+                                                        <Grid size={{ xs: 12, sm: 3 }}>
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 700 }}>
+                                                                    ID: #{claim.id.split('-')[0].toUpperCase()}
+                                                                </Typography>
+                                                                <Chip
+                                                                    icon={status.icon}
+                                                                    label={status.label}
+                                                                    size="small"
+                                                                    sx={{
+                                                                        bgcolor: `${status.color}11`,
+                                                                        color: status.color,
+                                                                        borderColor: `${status.color}33`,
+                                                                        border: '1px solid',
+                                                                        fontWeight: 700,
+                                                                        px: 1,
+                                                                        width: 'fit-content'
+                                                                    }}
+                                                                />
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid size={{ xs: 6, sm: 2.5 }}>
+                                                            <Box>
+                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block' }}>Vehicle</Typography>
+                                                                <Typography variant="body2" fontWeight="700" sx={{ color: '#1A2B3C' }}>{claim.vehicleReg}</Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid size={{ xs: 6, sm: 2.5 }}>
+                                                            <Box>
+                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block' }}>Incident</Typography>
+                                                                <Typography variant="body2" fontWeight="700" sx={{ color: '#1A2B3C' }}>{claim.incidentType}</Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid size={{ xs: 6, sm: 2 }}>
+                                                            <Box>
+                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block' }}>Amount</Typography>
+                                                                <Typography variant="body1" fontWeight="900" sx={{ color: '#0F9D6A' }}>₹{claim.totalAmount.toLocaleString('en-IN')}</Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid size={{ xs: 12, sm: 2 }} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                                                            <Button
+                                                                component={Link}
+                                                                href={`/claim/track?id=${claim.id}`}
+                                                                variant="outlined"
+                                                                size="medium"
+                                                                endIcon={<ArrowRightIcon />}
+                                                                sx={{
+                                                                    borderRadius: '12px',
+                                                                    px: 3,
+                                                                    bgcolor: 'rgba(45, 95, 158, 0.04)',
+                                                                    '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.08)' }
+                                                                }}
+                                                            >
+                                                                Track
+                                                            </Button>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Card>
+                                            </motion.div>
+                                        )
+                                    })}
+                                </AnimatePresence>
+                            </Box>
+                        )}
+
+                        <Box sx={{ mt: 8, textAlign: 'center', opacity: 0.6 }}>
+                            <Typography variant="caption" sx={{ letterSpacing: 1.5, fontWeight: 700, color: '#4A6080' }}>
+                                SECURE NOVA INTELLIGENCE UPLINK ACTIVE
+                            </Typography>
+                        </Box>
+                    </motion.div>
+                )}
+            </Container>
+        </Box>
     )
 }

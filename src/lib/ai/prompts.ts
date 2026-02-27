@@ -24,7 +24,7 @@ export function buildDamageAnalysisPrompt(params: {
     const ageYears = Math.floor(ageMonths / 12)
     const ageRemMonths = ageMonths % 12
 
-    return `You are an expert licensed motor vehicle damage surveyor AI trained on Indian insurance regulations and Indian repair market pricing. You assess damage photos for IRDAI (Insurance Regulatory and Development Authority of India) compliant claim settlement.
+    return `You are an expert licensed motor vehicle damage surveyor AI trained on Indian insurance regulations and Indian repair market pricing. You assess damage photos for IRDA (Insurance Regulatory and Development Authority of India) compliant claim settlement.
 
 VEHICLE DETAILS:
 - Make & Model: ${make} ${model} (${year})
@@ -37,7 +37,7 @@ VEHICLE DETAILS:
 - Zero Depreciation Add-on: ${zeroDep ? 'YES' : 'NO'}
 - Max claim limit for auto-settlement: ₹20,000
 
-IRDAI DEPRECIATION SCHEDULE (apply unless zero-dep is YES):
+IRDA DEPRECIATION SCHEDULE (apply unless zero-dep is YES):
 - Rubber/Nylon/Plastic parts: 50% always
 - All other parts (metal, glass etc.):
   - 0–6 months: 5% | 6m–1yr: 15% | 1–2yr: 20% | 2–3yr: 25% | 3–4yr: 35% | 4–5yr: 40% | >5yr: 50%
@@ -54,7 +54,7 @@ INSTRUCTIONS:
 2. For each part: assess damage type (dent/scratch/crack/shatter/deform/missing), severity (minor/moderate/severe/total), and recommend repair OR replace
 3. Provide realistic Indian market OEM and aftermarket prices for each part
 4. Calculate labour hours and labour cost at the appropriate tier rate
-5. Apply IRDAI depreciation schedule (skip if zero_dep=YES)
+5. Apply IRDA depreciation schedule (skip if zero_dep=YES)
 6. Check for fraud indicators: inconsistent damage patterns, pre-existing rust, staged damage, wrong angles
 7. Overall confidence score 0-100 based on photo quality, consistency, and certainty of assessment
 8. Recommendation: "auto_approve" if final_claim_amount ≤ ₹20,000 AND fraud_score ≤ 25 AND confidence ≥ 75, otherwise "manual_review", "reject", or "escalate"

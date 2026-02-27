@@ -110,8 +110,8 @@ export default function AdminAnalyticsPage() {
     }
 
     return (
-        <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
-            <Box sx={{ mb: 4 }}>
+        <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: 'auto' }}>
+            <Box sx={{ mb: { xs: 3, md: 4 } }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>System Analytics</Typography>
                 <Typography variant="body1" color="text.secondary">
                     Platform performance, financial impact, and AI accuracy metrics.

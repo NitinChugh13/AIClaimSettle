@@ -28,7 +28,7 @@ export const sendNotification = async (payload: NotificationPayload, channel: No
                         phone_number: payload.to,
                     },
                     content: {
-                        title: "ClaimSettle AI Update",
+                        title: "ClaimNova Update",
                         body: payload.message,
                     },
                     data: payload.data,

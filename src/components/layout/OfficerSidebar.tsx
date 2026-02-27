@@ -1,164 +1,327 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSidebarStore } from '@/store/useSidebarStore';
 import Link from 'next/link';
 import {
+    Dashboard as DashboardIcon,
+    Assignment as QueueIcon,
+    Settings as SettingsIcon,
+    ChevronLeft as ChevronLeftIcon,
+    Menu as MenuIcon,
+    ExitToApp as LogoutIcon,
+    FlashOn as ZapIcon,
+    Person as PersonIcon,
+    Security as ShieldIcon,
+} from '@mui/icons-material';
+import {
     Box,
-    Drawer,
+    Typography,
+    IconButton,
     List,
     ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    IconButton,
-    Divider,
-    Typography,
+    Drawer,
+    Avatar,
+    Button,
+    AppBar,
+    Toolbar,
 } from '@mui/material';
-import {
-    Menu as MenuIcon,
-    ChevronLeft as ChevronLeftIcon,
-    Dashboard as DashboardIcon,
-    ViewList as ViewListIcon,
-    Settings as SettingsIcon,
-    Security as ShieldIcon,
-} from '@mui/icons-material';
-
-const drawerWidth = 260;
+import Logo from '@/components/Logo';
 
 const navItems = [
-    { href: '/officer/dashboard', icon: DashboardIcon, label: 'Dashboard' },
-    { href: '/officer/queue', icon: ViewListIcon, label: 'Review Queue' },
+    { href: '/officer/dashboard', icon: DashboardIcon, label: 'Control Center' },
+    { href: '/officer/queue', icon: QueueIcon, label: 'Review Queue' },
+];
+
+const secondaryItems = [
+    { href: '/admin/pricing', icon: ShieldIcon, label: 'Value Catalog' },
+    { href: '/officer/settings', icon: SettingsIcon, label: 'System Nodes' },
 ];
 
 export default function OfficerSidebar() {
-    const [open, setOpen] = useState(true);
+    const { isCollapsed, toggleSidebar: toggleCollapse, isMobileOpen, setMobileOpen } = useSidebarStore();
     const pathname = usePathname();
+    const router = useRouter();
 
-    const toggleDrawer = () => setOpen(!open);
+    const sidebarWidth = isCollapsed ? 80 : 260;
 
-    return (
-        <>
-            {!open && (
-                <IconButton
-                    color="inherit"
-                    aria-label="open drawer"
-                    onClick={toggleDrawer}
-                    sx={{ position: 'fixed', top: 12, left: 12, zIndex: 1200, bgcolor: 'secondary.main', color: 'white', '&:hover': { bgcolor: 'secondary.dark' } }}
-                >
-                    <MenuIcon />
-                </IconButton>
-            )}
-
-            <Drawer
-                variant="permanent"
-                open={open}
-                sx={{
-                    width: open ? drawerWidth : 0,
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                    boxSizing: 'border-box',
-                    '& .MuiDrawer-paper': {
-                        width: drawerWidth,
-                        transition: 'width 0.2s',
-                        overflowX: 'hidden',
-                        backgroundColor: '#0a192f', // very dark blue
-                        color: 'white',
-                        borderRight: 'none',
-                        ...(!open && {
-                            width: 0,
-                            visibility: 'hidden',
-                        }),
-                    },
-                }}
-            >
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Box sx={{ width: 32, height: 32, borderRadius: 1.5, bgcolor: 'secondary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <ShieldIcon sx={{ color: 'white', fontSize: 20 }} />
+    const sidebarContent = (
+        <Box sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: 'white',
+            borderRight: '1px solid #CBD8EA',
+            position: 'relative',
+        }}>
+            {/* Header */}
+            <Box sx={{
+                height: 56,
+                display: 'flex',
+                alignItems: 'center',
+                px: isCollapsed ? 0 : 3,
+                justifyContent: isCollapsed ? 'center' : 'space-between',
+                borderBottom: '1px solid #F0F6FF'
+            }}>
+                {!isCollapsed && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                        <Box sx={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '8px',
+                            bgcolor: '#1A2B3C',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <ZapIcon sx={{ color: 'white', fontSize: 16 }} />
                         </Box>
                         <Box>
-                            <Typography variant="subtitle1" fontWeight="bold" sx={{ lineHeight: 1.2 }}>ClaimSettle AI</Typography>
-                            <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 'bold' }}>OFFICER PORTAL</Typography>
+                            <Typography variant="subtitle2" fontWeight="900" sx={{ color: '#1A2B3C', letterSpacing: '-0.02em', lineHeight: 1.2, fontSize: '13px' }}>CLAIMNOVA</Typography>
+                            <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 800, fontSize: '8px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>OFFICER NODE</Typography>
                         </Box>
                     </Box>
-                    <IconButton onClick={toggleDrawer} sx={{ color: '#94a3b8' }}>
-                        <ChevronLeftIcon />
-                    </IconButton>
-                </Box>
+                )}
 
-                <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
-                <List sx={{ px: 2, py: 2, flexGrow: 1 }}>
+                <IconButton
+                    onClick={toggleCollapse}
+                    sx={{
+                        color: '#64748B',
+                        bgcolor: '#F8FAFC',
+                        borderRadius: '10px',
+                        display: { xs: 'none', md: 'flex' },
+                        ml: isCollapsed ? 0 : 1,
+                        '&:hover': { bgcolor: '#F1F5F9' }
+                    }}
+                >
+                    {isCollapsed ? <MenuIcon sx={{ fontSize: 18 }} /> : <ChevronLeftIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+            </Box>
+
+            {/* Navigation */}
+            <Box sx={{ flex: 1, py: 4, overflowY: 'auto', px: 2 }} className="custom-scrollbar">
+                <Typography variant="caption" sx={{
+                    px: 2,
+                    fontWeight: 800,
+                    color: '#8DA5BE',
+                    textTransform: 'uppercase',
+                    letterSpacing: 1.5,
+                    display: isCollapsed ? 'none' : 'block',
+                    mb: 1
+                }}>
+                    Primary Nodes
+                </Typography>
+
+                <List sx={{ mb: 4 }}>
                     {navItems.map((item) => {
-                        const isActive = pathname === item.href;
+                        const active = pathname === item.href;
                         return (
-                            <ListItem key={item.href} disablePadding sx={{ mb: 1 }}>
+                            <ListItem key={item.href} disablePadding sx={{ mb: 0.5 }}>
                                 <ListItemButton
                                     component={Link}
                                     href={item.href}
-                                    selected={isActive}
+                                    onClick={() => setMobileOpen(false)}
                                     sx={{
-                                        borderRadius: 2,
-                                        '&.Mui-selected': {
-                                            backgroundColor: 'secondary.main',
-                                            color: 'primary.contrastText',
-                                            '&:hover': {
-                                                backgroundColor: 'secondary.dark',
-                                            },
-                                            '& .MuiListItemIcon-root': {
-                                                color: 'primary.contrastText',
-                                            },
-                                        },
-                                        '&:hover': {
-                                            backgroundColor: 'rgba(255,255,255,0.08)',
-                                        },
+                                        borderRadius: '12px',
+                                        py: 1.2,
+                                        px: isCollapsed ? 1.2 : 1.5,
+                                        bgcolor: active ? 'rgba(45, 95, 158, 0.08)' : 'transparent',
+                                        '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.04)' },
+                                        justifyContent: isCollapsed ? 'center' : 'flex-start'
                                     }}
                                 >
-                                    <ListItemIcon sx={{ minWidth: 40, color: isActive ? 'inherit' : '#94a3b8' }}>
-                                        <item.icon fontSize="small" />
+                                    <ListItemIcon sx={{
+                                        minWidth: isCollapsed ? 0 : 32,
+                                        color: active ? '#2D5F9E' : '#94A3B8',
+                                        display: 'flex',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <item.icon sx={{ fontSize: 20 }} />
                                     </ListItemIcon>
-                                    <ListItemText
-                                        primary={item.label}
-                                        slotProps={{ primary: { fontSize: 14, fontWeight: isActive ? 600 : 500 } }}
-                                    />
+                                    {!isCollapsed && (
+                                        <ListItemText
+                                            primary={item.label}
+                                            primaryTypographyProps={{
+                                                fontWeight: active ? 800 : 700,
+                                                color: active ? '#1A2B3C' : '#64748B',
+                                                fontSize: '13px',
+                                                letterSpacing: '-0.01em'
+                                            }}
+                                        />
+                                    )}
+                                    {active && !isCollapsed && (
+                                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#2D5F9E' }} />
+                                    )}
                                 </ListItemButton>
                             </ListItem>
                         );
                     })}
                 </List>
 
-                <Box sx={{ p: 2 }}>
-                    <ListItem disablePadding sx={{ mb: 2 }}>
-                        <ListItemButton
-                            component={Link}
-                            href="/admin/pricing"
+                <Typography variant="caption" sx={{
+                    px: 2,
+                    fontWeight: 800,
+                    color: '#8DA5BE',
+                    textTransform: 'uppercase',
+                    letterSpacing: 1.5,
+                    display: isCollapsed ? 'none' : 'block',
+                    mb: 1
+                }}>
+                    Sub-Systems
+                </Typography>
+
+                <List>
+                    {secondaryItems.map((item) => {
+                        const active = pathname === item.href;
+                        return (
+                            <ListItem key={item.href} disablePadding sx={{ mb: 0.5 }}>
+                                <ListItemButton
+                                    component={Link}
+                                    href={item.href}
+                                    onClick={() => setMobileOpen(false)}
+                                    sx={{
+                                        borderRadius: '12px',
+                                        py: 1.2,
+                                        px: isCollapsed ? 1.2 : 1.5,
+                                        bgcolor: active ? 'rgba(45, 95, 158, 0.08)' : 'transparent',
+                                        '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.04)' },
+                                        justifyContent: isCollapsed ? 'center' : 'flex-start'
+                                    }}
+                                >
+                                    <ListItemIcon sx={{
+                                        minWidth: isCollapsed ? 0 : 32,
+                                        color: active ? '#2D5F9E' : '#94A3B8',
+                                        display: 'flex',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <item.icon sx={{ fontSize: 20 }} />
+                                    </ListItemIcon>
+                                    {!isCollapsed && (
+                                        <ListItemText
+                                            primary={item.label}
+                                            primaryTypographyProps={{
+                                                fontWeight: active ? 800 : 700,
+                                                color: active ? '#1A2B3C' : '#64748B',
+                                                fontSize: '13px',
+                                                letterSpacing: '-0.01em'
+                                            }}
+                                        />
+                                    )}
+                                </ListItemButton>
+                            </ListItem>
+                        );
+                    })}
+                </List>
+            </Box>
+
+            {/* User Profile / Disconnect */}
+            <Box sx={{ p: 2, borderTop: '1px solid #F0F6FF' }}>
+                {!isCollapsed ? (
+                    <Box sx={{
+                        p: 2,
+                        borderRadius: '16px',
+                        bgcolor: '#FAFCFF',
+                        border: '1px solid #CBD8EA',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: 'rgba(45, 95, 158, 0.1)',
+                                color: '#2D5F9E',
+                                fontWeight: 800
+                            }}>
+                                <PersonIcon />
+                            </Avatar>
+                            <Box>
+                                <Typography variant="subtitle2" fontWeight="800" sx={{ color: '#1A2B3C', lineHeight: 1.2 }}>Officer #77F</Typography>
+                                <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 600 }}>Active Validator</Typography>
+                            </Box>
+                        </Box>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            startIcon={<LogoutIcon />}
+                            onClick={() => router.push('/')}
                             sx={{
-                                borderRadius: 2,
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                backgroundColor: 'rgba(255,255,255,0.05)',
-                                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                                borderRadius: '10px',
+                                textTransform: 'uppercase',
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                                letterSpacing: 1
                             }}
                         >
-                            <ListItemIcon sx={{ minWidth: 40, color: '#94a3b8' }}>
-                                <SettingsIcon fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText
-                                primary="Admin Settings"
-                                slotProps={{ primary: { fontSize: 13, color: '#e2e8f0' } }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-
-                    {/* Developer Credit */}
-                    <Box sx={{ display: open ? 'flex' : 'none', flexDirection: 'column', alignItems: 'center', p: 2, mt: 2, borderRadius: 3, bgcolor: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                        <Box sx={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', border: '2px solid', borderColor: 'secondary.main', mb: 1.5, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-                            <img src="/nitin.png" alt="Nitin Chugh" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </Box>
-                        <Typography variant="caption" sx={{ color: '#94a3b8', mb: 0.5, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.65rem' }}>Developed By</Typography>
-                        <Typography variant="body2" fontWeight="bold" sx={{ color: 'white' }}>Nitin Chugh</Typography>
+                            Disconnect
+                        </Button>
                     </Box>
-                </Box>
+                ) : (
+                    <IconButton
+                        onClick={() => router.push('/')}
+                        sx={{
+                            width: '100%',
+                            borderRadius: '12px',
+                            py: 1.5,
+                            color: '#8DA5BE',
+                            '&:hover': { color: '#D64045', bgcolor: 'rgba(214, 64, 69, 0.05)' }
+                        }}
+                    >
+                        <LogoutIcon />
+                    </IconButton>
+                )}
+            </Box>
+        </Box>
+    );
+
+    return (
+        <>
+            {/* Desktop Sidebar (Fixed) */}
+            <Box
+                component="nav"
+                sx={{
+                    width: isCollapsed ? 80 : 260,
+                    flexShrink: 0,
+                    height: '100vh',
+                    position: 'fixed',
+                    left: 0,
+                    top: 0,
+                    bgcolor: 'white',
+                    borderRight: '1px solid #CBD8EA',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    zIndex: 1300,
+                    display: { xs: 'none', md: 'flex' },
+                    flexDirection: 'column',
+                    boxShadow: 'none'
+                }}
+            >
+                {sidebarContent}
+            </Box>
+
+            {/* Mobile Drawer */}
+            <Drawer
+                variant="temporary"
+                open={isMobileOpen}
+                onClose={() => setMobileOpen(false)}
+                ModalProps={{ keepMounted: true }}
+                sx={{
+                    display: { xs: 'block', md: 'none' },
+                    '& .MuiDrawer-paper': {
+                        boxSizing: 'border-box',
+                        width: 260,
+                        border: 'none',
+                        boxShadow: '4px 0 24px rgba(30, 58, 95, 0.1)'
+                    },
+                }}
+            >
+                {sidebarContent}
             </Drawer>
         </>
     );

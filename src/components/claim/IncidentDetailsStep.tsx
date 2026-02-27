@@ -3,27 +3,35 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import type { Policy } from '@/types';
+import type { ClaimFormData } from '@/app/claim/new/page';
 import {
     Box,
     Typography,
-    Card,
-    CardContent,
-    CardHeader,
     TextField,
     Button,
+    Paper,
     Grid,
+    FormControl,
+    InputLabel,
+    Select,
     MenuItem,
+    Avatar,
     InputAdornment,
+    FormHelperText
 } from '@mui/material';
 import {
     LocationOn as MapPinIcon,
-    CalendarToday as CalendarIcon,
+    CalendarMonth as CalendarIcon,
+    AccessTime as ClockIcon,
     ChevronLeft as ChevronLeftIcon,
-    ChevronRight as ChevronRightIcon,
-    HelpOutline as HelpIcon,
+    ArrowForward as ArrowRightIcon,
+    ErrorOutline as AlertCircleIcon,
+    AccountBalance as LandmarkIcon,
+    ChatBubbleOutline as MessageSquareIcon,
+    Description as DescriptionIcon
 } from '@mui/icons-material';
-import type { Policy } from '@/types';
-import type { ClaimFormData } from '@/app/claim/new/page';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const schema = z.object({
     incidentDate: z.string().min(1, 'Select date of incident'),
@@ -45,11 +53,11 @@ interface Props {
 
 const INCIDENT_TYPES = [
     { value: 'accident', label: '🚗 Road Accident' },
-    { value: 'flood', label: '🌊 Flood / Waterlogging' },
-    { value: 'fire', label: '🔥 Fire' },
-    { value: 'theft', label: '🔓 Theft / Attempted Theft' },
-    { value: 'vandalism', label: '💢 Vandalism / Malicious Damage' },
-    { value: 'hail', label: '🌨️ Hail / Natural Calamity' },
+    { value: 'flood', label: '🌊 Flood / Water' },
+    { value: 'fire', label: '🔥 Fire Damage' },
+    { value: 'theft', label: '🔓 Theft / Break-in' },
+    { value: 'vandalism', label: '💢 Vandalism' },
+    { value: 'hail', label: '🌨️ Hail / Nature' },
     { value: 'other', label: '📋 Other' },
 ];
 
@@ -58,13 +66,7 @@ function todayStr() {
 }
 
 export default function IncidentDetailsStep({ policy, onComplete, onBack }: Props) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        control,
-        formState: { errors },
-    } = useForm<FormValues>({
+    const { register, handleSubmit, watch, control, formState: { errors } } = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: {
             incidentDate: todayStr(),
@@ -89,178 +91,226 @@ export default function IncidentDetailsStep({ policy, onComplete, onBack }: Prop
     };
 
     return (
-        <Box sx={{ maxWidth: 640, mx: 'auto', p: 2 }}>
+        <Box sx={{ width: '100%' }}>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Typography variant="h5" fontWeight="bold" gutterBottom>Incident Details</Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Tell us what happened to your {policy.vehicle_make} {policy.vehicle_model}
+                <Typography variant="h4" sx={{
+                    fontFamily: '"DM Serif Display", serif',
+                    color: '#1E3A5F',
+                    mb: 1,
+                    fontWeight: 700
+                }}>
+                    Events & Timeline
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#5B7692' }}>
+                    Reconstruct the incident details for our evaluation engine.
                 </Typography>
             </Box>
 
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Chronology & Location */}
+                <Paper sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
+                    <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
+                        <Avatar sx={{ bgcolor: 'rgba(45, 95, 158, 0.08)', color: '#2D5F9E', width: 40, height: 40, border: '1px solid rgba(45, 95, 158, 0.15)', borderRadius: '10px' }}>
+                            <MapPinIcon sx={{ fontSize: 20 }} />
+                        </Avatar>
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F' }}>Chronology & Location</Typography>
+                    </Box>
+                    <Grid container spacing={3} sx={{ p: 4 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                fullWidth
+                                type="date"
+                                label="Event Date"
+                                {...register('incidentDate')}
+                                error={!!errors.incidentDate}
+                                helperText={errors.incidentDate?.message}
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <CalendarIcon sx={{ color: '#8DA5BE' }} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                fullWidth
+                                type="time"
+                                label="Event Time"
+                                {...register('incidentTime')}
+                                error={!!errors.incidentTime}
+                                helperText={errors.incidentTime?.message}
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <ClockIcon sx={{ color: '#8DA5BE' }} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                            <TextField
+                                fullWidth
+                                label="Precise Location"
+                                placeholder="e.g. NH-48, Sector 15, Navi Mumbai"
+                                {...register('incidentLocation')}
+                                error={!!errors.incidentLocation}
+                                helperText={errors.incidentLocation?.message}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <MapPinIcon sx={{ color: '#8DA5BE' }} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
+                </Paper>
 
-                    <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-                        <CardHeader
-                            title={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <CalendarIcon color="primary" fontSize="small" />
-                                    <Typography variant="h6" fontWeight="bold">When & Where</Typography>
-                                </Box>
-                            }
-                            sx={{ pb: 1 }}
-                        />
-                        <CardContent sx={{ pt: 1 }}>
-                            <Grid container spacing={3}>
-                                <Grid size={{ xs: 12, sm: 6 }} >
-                                    <TextField
-                                        label="Date of Incident *"
-                                        type="date"
-                                        fullWidth
-                                        InputLabelProps={{ shrink: true }}
-                                        inputProps={{
-                                            max: todayStr(),
-                                            min: policy.policy_start_date,
-                                        }}
-                                        {...register('incidentDate')}
-                                        error={!!errors.incidentDate}
-                                        helperText={errors.incidentDate?.message}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6 }} >
-                                    <TextField
-                                        label="Time of Incident *"
-                                        type="time"
-                                        fullWidth
-                                        InputLabelProps={{ shrink: true }}
-                                        {...register('incidentTime')}
-                                        error={!!errors.incidentTime}
-                                        helperText={errors.incidentTime?.message}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12 }} >
-                                    <TextField
-                                        label="Location of Incident *"
-                                        placeholder="e.g. NH-48, near Kharghar, Navi Mumbai"
-                                        fullWidth
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <MapPinIcon fontSize="small" color="action" />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                        {...register('incidentLocation')}
-                                        error={!!errors.incidentLocation}
-                                        helperText={errors.incidentLocation?.message}
-                                    />
-                                </Grid>
-                            </Grid>
-                        </CardContent>
-                    </Card>
-
-                    <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-                        <CardHeader
-                            title={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <HelpIcon color="primary" fontSize="small" />
-                                    <Typography variant="h6" fontWeight="bold">What Happened?</Typography>
-                                </Box>
-                            }
-                            sx={{ pb: 1 }}
-                        />
-                        <CardContent sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Incident Reconstruction */}
+                <Paper sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
+                    <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
+                        <Avatar sx={{ bgcolor: 'rgba(45, 95, 158, 0.08)', color: '#2D5F9E', width: 40, height: 40, border: '1px solid rgba(45, 95, 158, 0.15)', borderRadius: '10px' }}>
+                            <MessageSquareIcon sx={{ fontSize: 20 }} />
+                        </Avatar>
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F' }}>Incident Reconstruction</Typography>
+                    </Box>
+                    <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <FormControl fullWidth error={!!errors.incidentType}>
+                            <InputLabel>Incident Classification</InputLabel>
                             <Controller
                                 name="incidentType"
                                 control={control}
                                 render={({ field }) => (
-                                    <TextField
+                                    <Select
                                         {...field}
-                                        select
-                                        label="Type of Incident *"
-                                        fullWidth
+                                        label="Incident Classification"
+                                        sx={{ borderRadius: '12px' }}
                                     >
-                                        {INCIDENT_TYPES.map((option) => (
-                                            <MenuItem key={option.value} value={option.value}>
-                                                {option.label}
+                                        {INCIDENT_TYPES.map(type => (
+                                            <MenuItem key={type.value} value={type.value}>
+                                                <Typography variant="body2" fontWeight="bold">{type.label}</Typography>
                                             </MenuItem>
                                         ))}
-                                    </TextField>
+                                    </Select>
                                 )}
                             />
+                            {errors.incidentType && <FormHelperText>{errors.incidentType.message}</FormHelperText>}
+                        </FormControl>
 
+                        <Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: '#5B7692', textTransform: 'uppercase' }}>Detailed Event Log</Typography>
+                                <Typography variant="caption" sx={{
+                                    fontWeight: 800,
+                                    px: 1.5, py: 0.5, borderRadius: '12px',
+                                    bgcolor: description.length >= 50 ? 'rgba(15, 157, 106, 0.08)' : 'rgba(141, 165, 190, 0.08)',
+                                    color: description.length >= 50 ? '#0F9D6A' : '#8DA5BE'
+                                }}>
+                                    {description.length} / 50 CHARS
+                                </Typography>
+                            </Box>
                             <TextField
-                                label="Describe the Incident *"
+                                fullWidth
                                 multiline
                                 rows={4}
-                                placeholder="Describe what happened in detail — direction of impact, speed, road conditions, other vehicles involved, injuries, etc."
-                                fullWidth
+                                placeholder="Describe the incident — direction of impact, weather conditions, other vehicles involved, etc."
                                 {...register('incidentDescription')}
                                 error={!!errors.incidentDescription}
-                                helperText={
-                                    errors.incidentDescription?.message ||
-                                    <Box component="span" sx={{ color: description.length >= 50 ? 'success.main' : 'text.secondary' }}>
-                                        ({description.length}/50 min)
-                                    </Box>
-                                }
+                                helperText={errors.incidentDescription?.message}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                             />
+                        </Box>
 
-                            <Grid container spacing={3}>
-                                <Grid size={{ xs: 12, sm: firFiled === 'yes' ? 6 : 12 }} >
+                        <Grid container spacing={3}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <FormControl fullWidth error={!!errors.firFiled}>
+                                    <InputLabel>Police Reporting (FIR)</InputLabel>
                                     <Controller
                                         name="firFiled"
                                         control={control}
                                         render={({ field }) => (
-                                            <TextField
+                                            <Select
                                                 {...field}
-                                                select
-                                                label="FIR Filed?"
-                                                fullWidth
+                                                label="Police Reporting (FIR)"
+                                                sx={{ borderRadius: '12px' }}
                                             >
-                                                <MenuItem value="yes">Yes</MenuItem>
-                                                <MenuItem value="no">No</MenuItem>
-                                            </TextField>
+                                                <MenuItem value="yes"><Typography variant="body2" fontWeight="bold">Yes, FIR Filed</Typography></MenuItem>
+                                                <MenuItem value="no"><Typography variant="body2" fontWeight="bold">No, Not Filed</Typography></MenuItem>
+                                            </Select>
                                         )}
                                     />
-                                </Grid>
-                                {firFiled === 'yes' && (
-                                    <Grid size={{ xs: 12, sm: 6 }} >
-                                        <TextField
-                                            label="FIR Number"
-                                            placeholder="FIR/2024/XXXXX"
-                                            fullWidth
-                                            {...register('firNumber')}
-                                        />
-                                    </Grid>
-                                )}
+                                </FormControl>
                             </Grid>
-                        </CardContent>
-                    </Card>
 
-                    <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                        <Button
-                            type="button"
-                            variant="outlined"
-                            color="inherit"
-                            onClick={onBack}
-                            startIcon={<ChevronLeftIcon />}
-                            sx={{ flex: 1, py: 1.5, fontWeight: 'bold' }}
-                        >
-                            Back
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            endIcon={<ChevronRightIcon />}
-                            sx={{ flex: 1, py: 1.5, fontWeight: 'bold' }}
-                        >
-                            Next: Upload Photos
-                        </Button>
+                            {firFiled === 'yes' && (
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+                                        <TextField
+                                            fullWidth
+                                            label="FIR Identifier"
+                                            placeholder="FIR/2024/XXXXX"
+                                            {...register('firNumber')}
+                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <LandmarkIcon sx={{ color: '#8DA5BE' }} />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                    </motion.div>
+                                </Grid>
+                            )}
+                        </Grid>
                     </Box>
+                </Paper>
 
+                {/* Actions */}
+                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                    <Button
+                        onClick={onBack}
+                        variant="outlined"
+                        startIcon={<ChevronLeftIcon />}
+                        sx={{
+                            px: 3,
+                            py: 1.5,
+                            borderRadius: '12px',
+                            borderColor: '#8DA5BE',
+                            color: '#5B7692',
+                            fontWeight: 600,
+                            '&:hover': { borderColor: '#2D5F9E', color: '#2D5F9E' }
+                        }}
+                    >
+                        Back
+                    </Button>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        fullWidth
+                        endIcon={<ArrowRightIcon />}
+                        sx={{
+                            py: 1.8,
+                            borderRadius: '12px',
+                            bgcolor: '#2D5F9E',
+                            fontWeight: 700,
+                            boxShadow: '0 6px 20px rgba(45, 95, 158, 0.2)',
+                            '&:hover': { bgcolor: '#1E3A5F', transform: 'translateY(-2px)' }
+                        }}
+                    >
+                        Continue to Photo Upload
+                    </Button>
                 </Box>
-            </form>
+            </Box>
         </Box>
     );
 }

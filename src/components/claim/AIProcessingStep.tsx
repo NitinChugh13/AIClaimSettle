@@ -2,29 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    Box,
-    Typography,
-    Card,
-    CardContent,
-    CircularProgress,
-    Button,
-    Alert,
-} from '@mui/material';
-import {
-    CheckCircle as CheckCircleIcon,
-    ErrorOutline as ErrorOutlineIcon,
-    ChevronRight as ChevronRightIcon,
-} from '@mui/icons-material';
 import type { ClaimFormData } from '@/app/claim/new/page';
 import type { AIAnalysisResult } from '@/types';
 import {
-    getVehicleAgeMonths,
-    getDepreciationRate,
-    getCityTier,
-    getLaborRate,
-    getCompulsoryDeductible,
-} from '@/lib/pricing/depreciation';
+    Box,
+    Typography,
+    Paper,
+    Grid,
+    Button,
+    CircularProgress,
+    Avatar,
+    Divider,
+    Stack,
+    Alert
+} from '@mui/material';
+import {
+    CheckCircle as CheckCircleIcon,
+    ErrorOutline as AlertCircleIcon,
+    ArrowForward as ArrowRightIcon,
+    AutoFixHigh as LoaderIcon,
+    Search as SearchCodeIcon,
+    Insights as ActivityIcon,
+    Storage as DatabaseIcon,
+    Code as BinaryIcon,
+    Fingerprint as FingerprintIcon,
+    QrCodeScanner as ScanIcon,
+    Shield as ShieldCheckIcon
+} from '@mui/icons-material';
 
 interface Props {
     formData: ClaimFormData;
@@ -33,15 +37,13 @@ interface Props {
 }
 
 const PROCESSING_STEPS = [
-    { id: 1, text: 'Analysing photo quality & metadata...', delay: 500 },
-    { id: 2, text: 'Detecting vehicle & damaged parts...', delay: 2000 },
-    { id: 3, text: 'Calculating OEM & local part prices...', delay: 4000 },
-    { id: 4, text: 'Applying IRDAI depreciation schedule...', delay: 5500 },
-    { id: 5, text: 'Running fraud detection checks...', delay: 7000 },
-    { id: 6, text: 'Generating assessment report...', delay: 8500 },
+    { id: 1, text: 'Calibrating Optical Sensors...', icon: ScanIcon, delay: 500 },
+    { id: 2, text: 'Segmenting Damage Geometries...', icon: BinaryIcon, delay: 2000 },
+    { id: 3, text: 'Querying OEM Pricing Matrix...', icon: DatabaseIcon, delay: 4000 },
+    { id: 4, text: 'Calculating Material Decay (Depreciation)...', icon: ActivityIcon, delay: 5500 },
+    { id: 5, text: 'Engaging Fraud Detection Neural Net...', icon: FingerprintIcon, delay: 7000 },
+    { id: 6, text: 'Synthesizing Final Assessment...', icon: SearchCodeIcon, delay: 8500 },
 ];
-
-
 
 export default function AIProcessingStep({ formData, onComplete, onBack }: Props) {
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -55,7 +57,6 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
 
         const runProcessing = async () => {
             try {
-                // Call Production AI API
                 const res = await fetch('/api/ai/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -70,29 +71,27 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
 
                 if (!res.ok) {
                     const errorData = await res.json();
-                    throw new Error(errorData.details || errorData.error || 'AI Analysis Service Unavailable');
+                    throw new Error(errorData.details || errorData.error || 'AI analysis failed');
                 }
 
                 const result: AIAnalysisResult = await res.json();
 
-                // Animate through steps
                 for (let i = 0; i < PROCESSING_STEPS.length; i++) {
-                    await new Promise(r => setTimeout(r, PROCESSING_STEPS[i].delay - (i > 0 ? PROCESSING_STEPS[i - 1].delay : 0)));
+                    const wait = PROCESSING_STEPS[i].delay - (i > 0 ? PROCESSING_STEPS[i - 1].delay : 0);
+                    await new Promise(r => setTimeout(r, wait));
                     if (cancelled) return;
                     setCompletedSteps(prev => [...prev, PROCESSING_STEPS[i].id]);
                     setCurrentIdx(i + 1);
                 }
 
-                await new Promise(r => setTimeout(r, 500));
+                await new Promise(r => setTimeout(r, 800));
                 if (!cancelled) {
                     setAnalysis(result);
                     setDone(true);
                 }
             } catch (err: any) {
                 if (!cancelled) {
-                    console.error('AI Processing Error:', err);
-                    setError(err.message || 'An error occurred during AI analysis. Please try again.');
-                    // Stop animation steps
+                    setError(err.message || 'Analysis failed. Please retry.');
                     setCompletedSteps([]);
                     setDone(false);
                 }
@@ -104,119 +103,233 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
     }, [formData]);
 
     return (
-        <Box sx={{ maxWidth: 500, mx: 'auto', textAlign: 'center', p: 2 }}>
-            <Box sx={{ mb: 4 }}>
-                <Box sx={{ width: 80, height: 80, mx: 'auto', borderRadius: '50%', bgcolor: done ? '#ecfdf5' : '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
+        <Box sx={{ width: '100%', maxWidth: 680, mx: 'auto' }}>
+            {/* Header */}
+            <Box sx={{ textAlign: 'center', mb: 5 }}>
+                <AnimatePresence mode="wait">
                     {done ? (
-                        <CheckCircleIcon sx={{ fontSize: 40, color: '#10b981' }} />
+                        <motion.div
+                            key="done"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                        >
+                            <Avatar sx={{
+                                width: 80, height: 80, mx: 'auto', mb: 3,
+                                bgcolor: 'rgba(15, 157, 106, 0.1)',
+                                border: '2px solid rgba(15, 157, 106, 0.4)',
+                                boxShadow: '0 8px 24px rgba(15, 157, 106, 0.15)',
+                                color: '#0F9D6A'
+                            }}>
+                                <CheckCircleIcon sx={{ fontSize: 40 }} />
+                            </Avatar>
+                        </motion.div>
                     ) : (
-                        <CircularProgress sx={{ color: '#1e3a8a' }} size={40} thickness={4} />
+                        <motion.div
+                            key="processing"
+                        >
+                            <Box sx={{ position: 'relative', width: 80, height: 80, mx: 'auto', mb: 3 }}>
+                                <CircularProgress
+                                    size={80}
+                                    thickness={2}
+                                    sx={{ color: '#2D5F9E', position: 'absolute', top: 0, left: 0 }}
+                                />
+                                <Avatar sx={{
+                                    width: 80, height: 80,
+                                    bgcolor: 'rgba(45, 95, 158, 0.06)',
+                                    color: '#2D5F9E'
+                                }}>
+                                    <LoaderIcon sx={{ fontSize: 32 }} />
+                                </Avatar>
+                            </Box>
+                        </motion.div>
                     )}
-                </Box>
-                <Typography variant="h5" fontWeight="bold" gutterBottom>
-                    {done ? 'Analysis Complete!' : 'AI Analysing Your Claim...'}
+                </AnimatePresence>
+
+                <Typography variant="h4" sx={{
+                    fontFamily: '"DM Serif Display", serif',
+                    color: '#1E3A5F',
+                    mb: 1,
+                    fontWeight: 700
+                }}>
+                    {done ? 'Analysis Finalized' : 'AI Processing'}
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body2" sx={{ color: '#5B7692', maxWidth: 400, mx: 'auto' }}>
                     {done
                         ? 'Your damage assessment is ready for review.'
-                        : 'Claude AI is reviewing your photos and calculating repair estimates.'}
+                        : 'Synchronizing multi-modal evidence with OEM datasets...'}
                 </Typography>
             </Box>
 
-            <Card elevation={0} sx={{ mb: 4, textAlign: 'left', border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-                <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2, '&:last-child': { pb: 3 } }}>
-                    {PROCESSING_STEPS.map((step, idx) => {
-                        const isCompleted = completedSteps.includes(step.id);
-                        const isCurrent = idx === currentIdx;
-
-                        return (
-                            <motion.div
-                                key={step.id}
-                                initial={{ opacity: 0.4 }}
-                                animate={{ opacity: isCompleted || isCurrent ? 1 : 0.4 }}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Box sx={{
-                                        width: 24, height: 24, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        bgcolor: isCompleted ? 'success.main' : isCurrent ? 'primary.main' : 'rgba(0,0,0,0.08)'
-                                    }}>
-                                        {isCompleted ? (
-                                            <CheckCircleIcon sx={{ fontSize: 16, color: 'white' }} />
-                                        ) : isCurrent ? (
-                                            <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                {[0, 1, 2].map(j => (
-                                                    <Box key={j} sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: 'white', animation: 'pulse 1.5s infinite', animationDelay: `${j * 0.2}s` }} />
-                                                ))}
-                                            </Box>
-                                        ) : null}
-                                    </Box>
-                                    <Typography variant="body2" sx={{ color: isCompleted || isCurrent ? 'text.primary' : 'text.disabled', fontWeight: isCompleted || isCurrent ? 500 : 400 }}>
-                                        {step.text}
-                                    </Typography>
-                                </Box>
-                            </motion.div>
-                        );
-                    })}
-                </CardContent>
-            </Card>
-
-            {!done && (
-                <Typography variant="caption" color="text.secondary">Estimated time: ~10 seconds</Typography>
-            )}
-
-            {done && analysis && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <Box sx={{
-                        p: 2,
-                        borderRadius: 2,
-                        mb: 3,
-                        fontWeight: 'bold',
-                        typography: 'body2',
-                        ...(analysis.recommendation === 'auto_approve' && { bgcolor: '#ecfdf5', color: '#047857', border: '1px solid #10b981' }),
-                        ...(analysis.recommendation === 'manual_review' && { bgcolor: '#fffbeb', color: '#b45309', border: '1px solid #f59e0b' }),
-                        ...(analysis.recommendation === 'escalate' && { bgcolor: '#fef2f2', color: '#b91c1c', border: '1px solid #ef4444' }),
-                        ...(analysis.recommendation === 'reject' && { bgcolor: '#fef2f2', color: '#b91c1c', border: '1px solid #ef4444' }),
+            <Grid container spacing={4}>
+                {/* Processing steps */}
+                <Grid size={{ xs: 12, lg: 6 }}>
+                    <Paper sx={{
+                        borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA',
+                        boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)'
                     }}>
-                        {analysis.recommendation === 'auto_approve' && '✅ Eligible for Auto-Approval'}
-                        {analysis.recommendation === 'manual_review' && '⏳ Recommended for Officer Review'}
-                        {analysis.recommendation === 'escalate' && '⚠️ Requires Officer Escalation'}
-                        {analysis.recommendation === 'reject' && '❌ Claim Not Eligible'}
-                    </Box>
-
-                    <Box sx={{ display: 'flex', gap: 2, mb: 4, justifyContent: 'space-between' }}>
-                        <Box sx={{ flex: 1, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 2, p: 1.5 }}>
-                            <Typography variant="caption" color="text.secondary" display="block">Estimated Payable</Typography>
-                            <Typography variant="body1" fontWeight="bold">₹{analysis.total_estimate.final_claim_amount.toLocaleString('en-IN')}</Typography>
+                        <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
+                            <ActivityIcon sx={{ fontSize: 20, color: '#2D5F9E' }} />
+                            <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2, color: '#8DA5BE' }}>
+                                Execution Stack
+                            </Typography>
                         </Box>
-                        <Box sx={{ flex: 1, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 2, p: 1.5 }}>
-                            <Typography variant="caption" color="text.secondary" display="block">AI Confidence</Typography>
-                            <Typography variant="body1" fontWeight="bold">{analysis.confidence_score.toFixed(0)}%</Typography>
-                        </Box>
-                        <Box sx={{ flex: 1, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 2, p: 1.5 }}>
-                            <Typography variant="caption" color="text.secondary" display="block">Fraud Risk</Typography>
-                            <Typography variant="body1" fontWeight="bold" color="success.main">LOW</Typography>
-                        </Box>
-                    </Box>
+                        <Stack spacing={2.5} sx={{ p: 3 }}>
+                            {PROCESSING_STEPS.map((step, idx) => {
+                                const isCompleted = completedSteps.includes(step.id);
+                                const isCurrent = idx === currentIdx;
+                                const StepIcon = step.icon;
 
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        size="large"
-                        endIcon={<ChevronRightIcon />}
-                        onClick={() => onComplete(analysis)}
-                        sx={{ py: 1.5, fontWeight: 'bold' }}
-                    >
-                        View Detailed Results
-                    </Button>
-                </motion.div>
-            )}
+                                return (
+                                    <Box key={step.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <Avatar sx={{
+                                            width: 36, height: 36, borderRadius: '10px',
+                                            border: `2px solid ${isCompleted ? '#0F9D6A' : isCurrent ? '#2D5F9E' : '#CBD8EA'}`,
+                                            bgcolor: isCompleted ? 'rgba(15, 157, 106, 0.06)' : isCurrent ? 'rgba(45, 95, 158, 0.06)' : '#FAFCFF',
+                                            color: isCompleted ? '#0F9D6A' : isCurrent ? '#2D5F9E' : '#8DA5BE',
+                                            transition: 'all 0.3s'
+                                        }}>
+                                            {isCompleted ? <CheckCircleIcon sx={{ fontSize: 18 }} /> : <StepIcon sx={{ fontSize: 16 }} />}
+                                        </Avatar>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="body2" fontWeight="bold" sx={{
+                                                color: isCompleted ? '#0F9D6A' : isCurrent ? '#1E3A5F' : '#8DA5BE',
+                                                transition: 'color 0.3s'
+                                            }}>
+                                                {step.text}
+                                            </Typography>
+                                            {isCurrent && (
+                                                <Box sx={{ height: 3, width: 80, bgcolor: '#F0F6FF', borderRadius: 4, overflow: 'hidden', mt: 0.5 }}>
+                                                    <motion.div
+                                                        animate={{ x: [-80, 80] }}
+                                                        transition={{ duration: 1.5, repeat: Infinity }}
+                                                        style={{ width: '100%', height: '100%', background: '#2D5F9E' }}
+                                                    />
+                                                </Box>
+                                            )}
+                                        </Box>
+                                    </Box>
+                                );
+                            })}
+                        </Stack>
+                    </Paper>
+                </Grid>
 
-            {error && (
-                <Alert severity="error" icon={<ErrorOutlineIcon />} sx={{ mt: 3, borderRadius: 2 }}>
-                    {error}
-                </Alert>
-            )}
+                {/* Result summary */}
+                <Grid size={{ xs: 12, lg: 6 }}>
+                    <AnimatePresence mode="wait">
+                        {done && analysis ? (
+                            <motion.div key="results" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                                <Stack spacing={2.5}>
+                                    <Paper sx={{
+                                        p: 3, borderRadius: '16px',
+                                        border: `1.5px solid ${analysis.recommendation === 'auto_approve' ? 'rgba(15,157,106,0.3)' : 'rgba(45,95,158,0.3)'}`,
+                                        bgcolor: analysis.recommendation === 'auto_approve' ? 'rgba(15, 157, 106, 0.04)' : 'rgba(45, 95, 158, 0.04)'
+                                    }}>
+                                        <Stack direction="row" spacing={2.5} alignItems="center">
+                                            <Avatar sx={{
+                                                width: 52, height: 52, borderRadius: '14px',
+                                                bgcolor: analysis.recommendation === 'auto_approve' ? '#0F9D6A' : '#2D5F9E'
+                                            }}>
+                                                <ShieldCheckIcon sx={{ fontSize: 28, color: 'white' }} />
+                                            </Avatar>
+                                            <Box>
+                                                <Typography variant="h5" fontWeight="800" sx={{ color: analysis.recommendation === 'auto_approve' ? '#065F46' : '#1E3A5F' }}>
+                                                    {analysis.recommendation === 'auto_approve' ? 'Auto-Approved' : 'Verified'}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: analysis.recommendation === 'auto_approve' ? '#0F9D6A' : '#2D5F9E' }}>
+                                                    Confidence Threshold Cleared
+                                                </Typography>
+                                            </Box>
+                                        </Stack>
+                                    </Paper>
+
+                                    <Grid container spacing={2}>
+                                        <Grid size={{ xs: 6 }}>
+                                            <Paper sx={{ p: 2.5, borderRadius: '14px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
+                                                <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>Valuation</Typography>
+                                                <Typography variant="h5" fontWeight="800" sx={{ color: '#1E3A5F' }}>₹{analysis.total_estimate.final_claim_amount.toLocaleString()}</Typography>
+                                            </Paper>
+                                        </Grid>
+                                        <Grid size={{ xs: 6 }}>
+                                            <Paper sx={{ p: 2.5, borderRadius: '14px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
+                                                <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>AI Confidence</Typography>
+                                                <Typography variant="h5" fontWeight="800" sx={{ color: '#2D5F9E' }}>{analysis.confidence_score.toFixed(0)}%</Typography>
+                                            </Paper>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Button
+                                        onClick={() => onComplete(analysis)}
+                                        variant="contained"
+                                        fullWidth
+                                        endIcon={<ArrowRightIcon />}
+                                        sx={{
+                                            py: 2, borderRadius: '12px', bgcolor: '#2D5F9E', fontWeight: 800,
+                                            boxShadow: '0 4px 16px rgba(45, 95, 158, 0.25)',
+                                            '&:hover': { bgcolor: '#1E3A5F', transform: 'translateY(-2px)' }
+                                        }}
+                                    >
+                                        Proceed to Final Summary
+                                    </Button>
+                                </Stack>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="scanning"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                            >
+                                <Paper sx={{
+                                    height: 310, borderRadius: '20px', display: 'flex', flexDirection: 'column',
+                                    alignItems: 'center', justifyContent: 'center', bgcolor: 'white',
+                                    border: '1px solid #CBD8EA', position: 'relative', overflow: 'hidden'
+                                }}>
+                                    {/* Scanning line */}
+                                    <motion.div
+                                        animate={{ top: ['0%', '100%'] }}
+                                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                                        style={{
+                                            position: 'absolute', left: 0, width: '100%', height: 2,
+                                            background: 'rgba(45, 95, 158, 0.3)',
+                                            boxShadow: '0 0 10px rgba(45, 95, 158, 0.5)',
+                                            zIndex: 5
+                                        }}
+                                    />
+                                    <Box sx={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+                                        <Stack direction="row" spacing={1} justifyContent="center" sx={{ opacity: 0.5, mb: 2 }}>
+                                            {[0, 1, 2].map(i => (
+                                                <motion.div
+                                                    key={i}
+                                                    animate={{ height: [12, 24, 12] }}
+                                                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                                                    style={{ width: 4, background: '#2D5F9E', borderRadius: 4 }}
+                                                />
+                                            ))}
+                                        </Stack>
+                                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#2D5F9E', textTransform: 'uppercase', letterSpacing: 2.5, mb: 1, display: 'block' }}>
+                                            SIMULATION ACTIVE
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                            Processing optical nodes...
+                                        </Typography>
+                                    </Box>
+                                </Paper>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </Grid>
+
+                {/* Error state */}
+                {error && (
+                    <Grid size={{ xs: 12 }}>
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                            <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                                {error}
+                            </Alert>
+                        </motion.div>
+                    </Grid>
+                )}
+            </Grid>
         </Box>
     );
 }

@@ -28,7 +28,7 @@ export const generateClaimReport = (data: ClaimReportData) => {
     // Header
     doc.setFontSize(22);
     doc.setTextColor(30, 58, 138); // primary dark blue
-    doc.text('ClaimSettle AI - Assessment Report', margin, y);
+    doc.text('ClaimNova - Assessment Report', margin, y);
     y += 10;
 
     doc.setFontSize(10);

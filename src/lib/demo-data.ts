@@ -7,7 +7,7 @@ import type { Policy, Claim, ClaimPhoto, DamageItem } from '@/types'
 export const DEMO_POLICIES: Policy[] = [
     {
         id: '1',
-        policy_number: 'UIIC/2024/MH/001234',
+        policy_number: 'SecureShield Insurance/2024/MH/001234',
         holder_name: 'Rahul Sharma',
         holder_phone: '9876543210',
         holder_email: 'rahul@example.com',
@@ -25,13 +25,13 @@ export const DEMO_POLICIES: Policy[] = [
         policy_end_date: '2025-03-31',
         ncb_percentage: 20,
         zero_depreciation: false,
-        insurer_name: 'UIIC',
+        insurer_name: 'SecureShield Insurance',
         status: 'active',
         created_at: new Date().toISOString(),
     },
     {
         id: '2',
-        policy_number: 'OIC/2024/DL/005678',
+        policy_number: 'PrimeCover General/2024/DL/005678',
         holder_name: 'Priya Patel',
         holder_phone: '9123456789',
         holder_email: 'priya@example.com',
@@ -49,7 +49,7 @@ export const DEMO_POLICIES: Policy[] = [
         policy_end_date: '2025-12-31',
         ncb_percentage: 0,
         zero_depreciation: true,
-        insurer_name: 'Oriental Insurance',
+        insurer_name: 'PrimeCover General',
         status: 'active',
         created_at: new Date().toISOString(),
     },

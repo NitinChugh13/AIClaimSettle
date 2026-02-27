@@ -1,4 +1,4 @@
-// IRDAI Motor Tariff Depreciation Calculator
+// IRDA Motor Tariff Depreciation Calculator
 
 export type PartCategory = 'rubber_plastic' | 'fiberglass' | 'standard'
 
@@ -62,7 +62,7 @@ export function getPaintingRate(tier: CityTier): number {
     }
 }
 
-// IRDAI Compulsory deductible
+// IRDA Compulsory deductible
 export function getCompulsoryDeductible(
     vehicleType: 'car' | 'two_wheeler' | 'commercial',
     engineCc?: number
