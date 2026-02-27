@@ -1,39 +1,128 @@
-# ClaimNova – Instant Motor Insurance Claims
+# 🚗 ClaimSettle AI  
+### Instant Motor Insurance Claims Powered by AI  
 
-> **Developed by NITIN CHUGH**
+[![Live Demo](https://img.shields.io/badge/Live-Demo-00C853?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-claims-settle.vercel.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=nextdotjs)]
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)]
+[![AI Powered](https://img.shields.io/badge/AI-Gemini%20%7C%20Claude-blueviolet?style=for-the-badge)]
 
-ClaimNova is a next-generation motor insurance claims platform designed to revolutionize the settlement process. By leveraging advanced AI vision models (Google Gemini / Anthropic Claude), the platform can ingest damage photos, instantly assess repair costs using Indian IRDA market standards, and approve eligible settlements within 15 minutes.
+> **Developed by Nitin Chugh**  
+> Transforming motor insurance claims using AI-driven automation.
+
+---
+
+## 🌐 Live Application
+
+🔗 **Try it here:**  
+👉 https://ai-claims-settle.vercel.app/
+
+Experience real-time AI-powered motor damage assessment and instant claim simulation.
+
+---
+
+## 🎯 Vision
+
+ClaimSettle AI reimagines the traditional motor insurance claim process by reducing manual intervention, eliminating delays, and providing instant AI-powered cost estimation using real-world IRDAI standards.
+
+The platform enables:
+- ⚡ 15-minute claim approvals
+- 🤖 AI-based damage assessment
+- 🔍 Fraud detection via metadata analysis
+- 📊 Real-time dashboard for officers
+
+---
 
 ## 🚀 Key Features
 
-*   **Photo-Based AI Assessment:** Upload images of vehicle damage to receive an instant, highly-accurate repair estimate.
-*   **IRDA Compliant Engine:** Calculates OEM part prices, labor costs by city tier, and mandatory depreciation rates automatically.
-*   **Fraud Detection:** Built-in EXIF metadata extraction and AI heuristics flag tampered images and inconsistent damage for manual review.
-*   **Persistent User Dashboard:** Claimants can securely log in using their Policy Number to view their entire claim history and track real-time status.
-*   **Live Officer Queue:** A real-time synchronized dashboard (powered by Supabase) for human adjusters to confidently review, approve, or escalate AI-processed claims.
-*   **Demo Mode Fallback:** Automatically intercepts failed LLM API calls to provide a hyper-realistic mock assessment so the application never breaks during demonstrations.
+### 📸 Photo-Based AI Damage Assessment
+Upload vehicle damage images and receive an instant repair cost breakdown using advanced AI vision models.
+
+### 🧾 IRDAI-Compliant Estimation Engine
+- OEM part price mapping  
+- City-tier labor cost calculation  
+- Depreciation logic  
+- Insurance rule-based validation  
+
+### 🛡 Fraud Detection System
+- EXIF metadata extraction  
+- Image tampering detection  
+- AI-based damage consistency validation  
+- Automatic manual review flagging  
+
+### 👤 Secure Claimant Dashboard
+Users log in using Policy Number to:
+- Track claim status  
+- View previous claims  
+- Download assessment reports  
+
+### 🧑‍💼 Live Officer Queue (Real-Time)
+- Synced dashboard powered by Supabase  
+- AI recommendations + manual override  
+- Approve / Reject / Escalate workflow  
+
+### 🎭 Demo Mode Fallback
+If external AI APIs fail, the app auto-generates realistic mock responses to ensure uninterrupted demo experience.
+
+---
+
+## 🧠 How It Works
+
+1. User uploads damage photos  
+2. AI model (Gemini / Claude) analyzes visual damage  
+3. Backend applies IRDAI logic engine  
+4. Fraud detection checks image metadata  
+5. Instant cost estimate generated  
+6. Officer dashboard receives claim for approval  
+
+---
 
 ## 🛠 Tech Stack
 
-*   **Frontend:** Next.js 14, React, Tailwind CSS, Material UI (MUI), Shadcn UI, Framer Motion
-*   **Backend:** Next.js Serverless API Routes
-*   **Database:** PostgreSQL (Supabase), Drizzle ORM
-*   **AI Integrations:** Google Generative AI (Gemini 1.5 Flash), Anthropic Claude 3
-*   **Data Visualization:** Recharts
+### Frontend
+- Next.js 14 (App Router)
+- React
+- Tailwind CSS
+- Material UI (MUI)
+- Shadcn UI
+- Framer Motion
 
-## 📦 Getting Started
+### Backend
+- Next.js Serverless API Routes
+- Drizzle ORM
+
+### Database
+- PostgreSQL (Supabase)
+
+### AI Integration
+- Google Gemini 1.5 Flash
+- Anthropic Claude 3
+
+### Data Visualization
+- Recharts
+
+---
+
+## 📦 Installation & Setup
 
 ### Prerequisites
-*   Node.js (v18+)
-*   Supabase Account
-*   Google AI Studio API Key (Free)
+- Node.js (v18+ recommended)
+- Supabase Account
+- Google AI Studio API Key
+
+---
+
+### 1️⃣ Clone Repository
+
+```bash
+git clone https://github.com/NitinChugh13/AIClaimSettle.git
+cd AIClaimSettle
 
 ### Installation
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/NitinChugh13/AIClaimNova.git
-    cd AIClaimNova
+    git clone https://github.com/NitinChugh13/AIClaimSettle.git
+    cd AIClaimSettle
     ```
 
 2.  **Install dependencies**
@@ -63,13 +152,7 @@ ClaimNova is a next-generation motor insurance claims platform designed to revol
     ```
     Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-## 🚢 Deployment (Vercel)
 
-This application is ready to be deployed on Vercel. Because the frontend and backend are tightly integrated within Next.js, Vercel will automatically configure the serverless functions.
-
-To deploy User and Admin panels separately as requested, you can launch the exact same repository into **Two Distinct Vercel Projects**. Then, use Vercel's **Edge Middleware** or **Redirects** to restrict access:
-*   **Project 1 (User Portal):** Redirects `/admin/*` and `/officer/*` to a 404.
-*   **Project 2 (Admin Portal):** Redirects `/claim/*` and `/dashboard` to a 404, acting purely as the internal network tool.
-
----
 *Built with passion to streamline the future of insurance.*
+
+
