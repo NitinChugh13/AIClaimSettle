@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   AppBar,
@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import Logo from '@/components/Logo';
+import { useAuth } from '@/context/AuthContext';
 
 function ElevationScroll(props: { children: React.ReactElement }) {
   const { children } = props;
@@ -44,6 +45,13 @@ const links = [
 
 export default function MarketingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, logout, loading } = useAuth(); // ← loading added
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  console.log('[MarketingHeader] user:', user, 'loading:', loading);
 
   return (
     <>
@@ -70,9 +78,63 @@ export default function MarketingHeader() {
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Button component={Link} href="/dashboard" sx={{ display: { xs: 'none', sm: 'flex' }, fontWeight: 600, color: '#4A6080' }}>
-                My Dashboard
-              </Button>
+
+              {/* ← FIXED: !loading wrap added to prevent flash */}
+              {mounted && !loading && (
+                <>
+                  {user ? (
+                    <>
+                      <Box sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 600, color: '#4A6080' }}>
+                        👋 {user.full_name}
+                      </Box>
+                      <Button
+                        component={Link}
+                        href="/dashboard"
+                        sx={{ display: { xs: 'none', sm: 'flex' }, fontWeight: 600, color: '#2D5F9E' }}
+                      >
+                        My Dashboard
+                      </Button>
+                      <Button
+                        onClick={() => logout()}
+                        sx={{
+                          display: { xs: 'none', sm: 'flex' },
+                          fontWeight: 600,
+                          color: '#D64045',
+                          '&:hover': { bgcolor: 'rgba(214, 64, 69, 0.05)' }
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        component={Link}
+                        href="/login"
+                        sx={{ display: { xs: 'none', sm: 'flex' }, fontWeight: 600, color: '#4A6080' }}
+                      >
+                        Login
+                      </Button>
+                      <Button
+                        component={Link}
+                        href="/register"
+                        sx={{
+                          display: { xs: 'none', sm: 'flex' },
+                          fontWeight: 700,
+                          color: '#2D5F9E',
+                          border: '1.5px solid #2D5F9E',
+                          borderRadius: '8px',
+                          px: 2,
+                          '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.05)' }
+                        }}
+                      >
+                        Register
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+
               <Button
                 component={Link}
                 href="/claim/new"
@@ -95,6 +157,7 @@ export default function MarketingHeader() {
         </AppBar>
       </ElevationScroll>
 
+      {/* Mobile Drawer */}
       <Drawer
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
@@ -116,6 +179,39 @@ export default function MarketingHeader() {
               </ListItemButton>
             </ListItem>
           ))}
+
+          {/* Mobile menu auth buttons */}
+          {mounted && !loading && (
+            <>
+              {user ? (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton component={Link} href="/dashboard" onClick={() => setMobileOpen(false)}>
+                      <ListItemText primary="My Dashboard" slotProps={{ primary: { fontWeight: 600, fontSize: 14, color: '#2D5F9E' } }} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => { logout(); setMobileOpen(false); }}>
+                      <ListItemText primary="Logout" slotProps={{ primary: { fontWeight: 600, fontSize: 14, color: '#D64045' } }} />
+                    </ListItemButton>
+                  </ListItem>
+                </>
+              ) : (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton component={Link} href="/login" onClick={() => setMobileOpen(false)}>
+                      <ListItemText primary="Login" slotProps={{ primary: { fontWeight: 600, fontSize: 14 } }} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton component={Link} href="/register" onClick={() => setMobileOpen(false)}>
+                      <ListItemText primary="Register" slotProps={{ primary: { fontWeight: 600, fontSize: 14, color: '#2D5F9E' } }} />
+                    </ListItemButton>
+                  </ListItem>
+                </>
+              )}
+            </>
+          )}
         </List>
       </Drawer>
     </>

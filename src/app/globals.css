@@ -566,3 +566,19 @@ h4 {
 body {
   overflow-x: hidden;
 }
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-30px) scale(1.05); }
+}
+
+@layer utilities {
+  .h-13 {
+    height: 3.25rem; /* 52px */
+  }
+}

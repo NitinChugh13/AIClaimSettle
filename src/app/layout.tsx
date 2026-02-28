@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   keywords: 'motor insurance claim, instant settlement, AI survey, IRDA, SecureShield Insurance, PrimeCover General',
 }
 
+import { AuthProvider } from '@/context/AuthContext'
+
 export default function RootLayout({
   children,
 }: {
@@ -37,11 +39,13 @@ export default function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className={dmSans.className}>
-        <MUIProvider>
-          <ScrollToTop />
-          {children}
-          <Toaster richColors position="top-right" />
-        </MUIProvider>
+        <AuthProvider>
+          <MUIProvider>
+            <ScrollToTop />
+            {children}
+            <Toaster richColors position="top-right" />
+          </MUIProvider>
+        </AuthProvider>
       </body>
     </html>
   )

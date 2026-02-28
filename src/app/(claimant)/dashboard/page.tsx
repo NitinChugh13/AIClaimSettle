@@ -38,6 +38,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
 import Logo from '@/components/Logo'
+import { useAuth } from '@/context/AuthContext'
 
 interface ClaimRecord {
     id: string
@@ -73,6 +74,12 @@ export default function UserDashboard() {
     const [error, setError] = useState('')
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const { user, logout, loading: authLoading } = useAuth()
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     useEffect(() => {
         const savedPolicy = localStorage.getItem('lastPolicyNumber')
@@ -128,15 +135,30 @@ export default function UserDashboard() {
                     <Link href="/" style={{ textDecoration: 'none' }}>
                         <Logo variant="dark" />
                     </Link>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button
-                            component={Link}
-                            href="/claim/track"
-                            variant="text"
-                            sx={{ color: '#4A6080', fontWeight: 600, display: { xs: 'none', sm: 'flex' } }}
-                        >
-                            Track View
-                        </Button>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                        {mounted && !authLoading && (
+                            <>
+                                {user && (
+                                    <Box sx={{ fontWeight: 600, color: '#4A6080', display: { xs: 'none', sm: 'block' } }}>
+                                        👋 {user.full_name}
+                                    </Box>
+                                )}
+                                <Button
+                                    component={Link}
+                                    href="/claim/track"
+                                    variant="text"
+                                    sx={{ color: '#4A6080', fontWeight: 600, display: { xs: 'none', sm: 'flex' } }}
+                                >
+                                    Track View
+                                </Button>
+                                <Button
+                                    onClick={() => logout()}
+                                    sx={{ color: '#D64045', fontWeight: 600, display: { xs: 'none', sm: 'flex' } }}
+                                >
+                                    Logout
+                                </Button>
+                            </>
+                        )}
                         <Button
                             component={Link}
                             href="/claim/new"

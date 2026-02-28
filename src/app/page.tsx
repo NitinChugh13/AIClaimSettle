@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -88,10 +88,17 @@ import Logo from '@/components/Logo';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import TestimonialCarousel from '@/components/TestimonialCarousel';
 import NovaStrikeSection from '@/components/home/NovaStrikeSection';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+  const { user, logout, loading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const legalLinks = [
     { label: 'Privacy Policy', href: '/privacy-policy' },
@@ -108,7 +115,7 @@ export default function HomePage() {
   };
 
   return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#EDF3FB' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#EDF3FB' }}>
 
       {/* Navigation */}
       <ElevationScroll>
@@ -152,18 +159,55 @@ export default function HomePage() {
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Button
-                component={Link}
-                href="/dashboard"
-                sx={{
-                  display: { xs: 'none', sm: 'flex' },
-                  fontWeight: 600,
-                  color: '#4A6080',
-                  '&:hover': { color: '#2D5F9E', bgcolor: 'rgba(45, 95, 158, 0.05)' }
-                }}
-              >
-                My Dashboard
-              </Button>
+              {mounted && !loading && (
+                <>
+                  {user ? (
+                    <>
+                      <Box sx={{ fontWeight: 600, color: '#4A6080', display: { xs: 'none', sm: 'block' } }}>
+                        👋 {user.full_name}
+                      </Box>
+                      <Button
+                        component={Link}
+                        href="/dashboard"
+                        sx={{ fontWeight: 600, color: '#2D5F9E', display: { xs: 'none', sm: 'flex' } }}
+                      >
+                        My Dashboard
+                      </Button>
+                      <Button
+                        onClick={() => logout()}
+                        sx={{ fontWeight: 600, color: '#D64045', display: { xs: 'none', sm: 'flex' } }}
+                      >
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        component={Link}
+                        href="/login"
+                        sx={{ fontWeight: 600, color: '#4A6080', display: { xs: 'none', sm: 'flex' } }}
+                      >
+                        Login
+                      </Button>
+                      <Button
+                        component={Link}
+                        href="/register"
+                        sx={{
+                          fontWeight: 700,
+                          color: '#2D5F9E',
+                          border: '1.5px solid #2D5F9E',
+                          borderRadius: '8px',
+                          px: 2,
+                          display: { xs: 'none', sm: 'flex' },
+                          '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.05)' }
+                        }}
+                      >
+                        Register
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
               <Button
                 component={Link}
                 href="/claim/new"
@@ -237,15 +281,52 @@ export default function HomePage() {
               </ListItemButton>
             </ListItem>
           ))}
-          <ListItem disablePadding>
-            <ListItemButton
-              component={Link}
-              href="/dashboard"
-              sx={{ borderRadius: 2, mb: 0.5, color: '#4A6080', '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.06)', color: '#2D5F9E' } }}
-            >
-              <ListItemText primary="My Dashboard" slotProps={{ primary: { fontWeight: 600, fontSize: 14 } }} />
-            </ListItemButton>
-          </ListItem>
+          {mounted && !loading && (
+            <>
+              {user ? (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/dashboard"
+                      sx={{ borderRadius: 2, mb: 0.5, color: '#2D5F9E', '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.06)' } }}
+                    >
+                      <ListItemText primary="My Dashboard" slotProps={{ primary: { fontWeight: 600, fontSize: 14 } }} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={() => { logout(); setMobileOpen(false); }}
+                      sx={{ borderRadius: 2, mb: 0.5, color: '#D64045', '&:hover': { bgcolor: 'rgba(214, 64, 69, 0.05)' } }}
+                    >
+                      <ListItemText primary="Logout" slotProps={{ primary: { fontWeight: 600, fontSize: 14 } }} />
+                    </ListItemButton>
+                  </ListItem>
+                </>
+              ) : (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/login"
+                      sx={{ borderRadius: 2, mb: 0.5, color: '#4A6080', '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.06)', color: '#2D5F9E' } }}
+                    >
+                      <ListItemText primary="Login" slotProps={{ primary: { fontWeight: 600, fontSize: 14 } }} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/register"
+                      sx={{ borderRadius: 2, mb: 0.5, color: '#2D5F9E', '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.06)' } }}
+                    >
+                      <ListItemText primary="Register" slotProps={{ primary: { fontWeight: 600, fontSize: 14 } }} />
+                    </ListItemButton>
+                  </ListItem>
+                </>
+              )}
+            </>
+          )}
           <ListItem disablePadding sx={{ mt: 2 }}>
             <ListItemButton
               component={Link}
@@ -381,7 +462,7 @@ export default function HomePage() {
                 label="Superior Intelligence"
                 sx={{
                   mb: 2,
-        bgcolor: 'rgba(236, 243, 252, 0.94)',
+                  bgcolor: 'rgba(236, 243, 252, 0.94)',
                   color: '#2D5F9E',
                   borderColor: 'rgba(45, 95, 158, 0.25)',
                   fontWeight: 700,
@@ -408,14 +489,14 @@ export default function HomePage() {
                 <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}>
                   <Box sx={{
                     display: 'flex', gap: 3, p: 4, borderRadius: '16px',
-            bgcolor: '#EEF4FC',
+                    bgcolor: '#EEF4FC',
                     border: '1px solid #CBD8EA',
                     boxShadow: '0 2px 12px rgba(30, 58, 95, 0.07)',
                     transition: 'all 0.3s ease',
                     position: 'relative', overflow: 'hidden',
                     '&:hover': {
                       transform: 'translateY(-6px)',
-                    bgcolor: '#F1F6FD',
+                      bgcolor: '#F1F6FD',
                       boxShadow: '0 12px 32px rgba(30, 58, 95, 0.14)',
                       '& .feature-icon-container': { bgcolor: '#2D5F9E', transform: 'scale(1.05)' }
                     }
