@@ -37,6 +37,7 @@ import {
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Car } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { useAuth } from '@/context/AuthContext'
 
@@ -69,6 +70,7 @@ const itemVariants = {
 export default function UserDashboard() {
     const [policyNumber, setPolicyNumber] = useState('')
     const [loading, setLoading] = useState(false)
+    const [policy, setPolicy] = useState<any>(null)
     const [claims, setClaims] = useState<ClaimRecord[]>([])
     const [searched, setSearched] = useState(false)
     const [error, setError] = useState('')
@@ -81,26 +83,48 @@ export default function UserDashboard() {
         setMounted(true)
     }, [])
 
+    // Fetch user's linked policy and history on mount
     useEffect(() => {
-        const savedPolicy = localStorage.getItem('lastPolicyNumber')
-        if (savedPolicy) {
-            setPolicyNumber(savedPolicy)
-            fetchHistory(savedPolicy)
+        if (mounted && user) {
+            fetchMyPolicy()
         }
-    }, [])
+    }, [mounted, user])
 
-    const fetchHistory = async (policy: string) => {
+    const fetchMyPolicy = async () => {
+        setLoading(true)
+        try {
+            const res = await fetch('/api/policies/my-policy')
+            if (res.ok) {
+                const data = await res.json()
+                setPolicy(data.policy)
+                setSearched(true)
+                // Automatically fetch history for this policy
+                fetchHistory(data.policy.policy_number)
+            } else {
+                // If no policy found, middleware should have caught this, 
+                // but we handle it just in case.
+                setSearched(false)
+            }
+        } catch (err) {
+            console.error('Error fetching policy:', err)
+            setError('Failed to load policy details')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const fetchHistory = async (policyNum: string) => {
         setLoading(true)
         setError('')
         try {
-            const res = await fetch(`/api/claims/history?policy=${encodeURIComponent(policy)}`)
+            const res = await fetch(`/api/claims/history?policy=${encodeURIComponent(policyNum)}`)
             if (!res.ok) throw new Error('Failed to fetch history')
             const data = await res.json()
             setClaims(data)
-            setSearched(true)
-            localStorage.setItem('lastPolicyNumber', policy)
         } catch (err: any) {
-            setError(err.message || 'Searching failed.')
+            console.error('Search failed:', err)
+            // It's okay if history is empty for a new user
+            setClaims([])
         } finally {
             setLoading(false)
         }
@@ -108,9 +132,6 @@ export default function UserDashboard() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        if (policyNumber.length > 5) {
-            fetchHistory(policyNumber.toUpperCase())
-        }
     }
 
     const getStatusProps = (status: string) => {
@@ -269,26 +290,95 @@ export default function UserDashboard() {
                         animate="show"
                     >
                         {/* Header Section */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 6, flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4, flexWrap: 'wrap', gap: 2 }}>
                             <Box>
                                 <Typography variant="h5" fontWeight="900" sx={{ color: '#1A2B3C', mb: 0.5 }}>
                                     Claim Dashboard
                                 </Typography>
                                 <Typography variant="body1" sx={{ color: '#4A6080' }}>
-                                    Managing policy: <span style={{ fontWeight: 700, color: '#2D5F9E' }}>{policyNumber}</span>
+                                    Welcome back, <span style={{ fontWeight: 700, color: '#2D5F9E' }}>{user?.full_name}</span>
                                 </Typography>
                             </Box>
                             <Button
-                                variant="outlined"
-                                color="secondary"
-                                size="small"
-                                onClick={() => { setSearched(false); setPolicyNumber(''); localStorage.removeItem('lastPolicyNumber'); }}
-                                startIcon={<LogoutIcon />}
-                                sx={{ borderRadius: '8px' }}
+                                variant="contained"
+                                component={Link}
+                                href="/claim/new"
+                                startIcon={<FlashOnIcon />}
+                                sx={{
+                                    background: 'linear-gradient(135deg, #2563EB, #3B82F6)',
+                                    borderRadius: '12px',
+                                    fontWeight: 700,
+                                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+                                }}
                             >
-                                Switch Policy
+                                File New Claim
                             </Button>
                         </Box>
+
+                        {/* Policy Details Card */}
+                        {policy && (
+                            <Card sx={{
+                                borderRadius: '24px',
+                                border: '1px solid #CBD8EA',
+                                mb: 5,
+                                overflow: 'hidden',
+                                boxShadow: '0 4px 20px rgba(30, 58, 95, 0.05)'
+                            }}>
+                                <Box sx={{
+                                    background: 'linear-gradient(90deg, #1E3A5F, #2D5F9E)',
+                                    px: 3, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'white' }}>
+                                        <ShieldIcon sx={{ fontSize: 20 }} />
+                                        <Typography variant="subtitle2" fontWeight="700">ACTIVE POLICY: {policy.policy_number}</Typography>
+                                    </Box>
+                                    <Chip
+                                        label={policy.policy_type}
+                                        size="small"
+                                        sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, fontSize: '0.7rem' }}
+                                    />
+                                </Box>
+                                <CardContent sx={{ p: 3 }}>
+                                    <Grid container spacing={3}>
+                                        <Grid size={{ xs: 12, md: 4 }}>
+                                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                                <Avatar sx={{ bgcolor: '#F0F6FF', color: '#2D5F9E', borderRadius: '12px' }}>
+                                                    <Car size={24} />
+                                                </Avatar>
+                                                <Box>
+                                                    <Typography variant="caption" color="text.secondary" fontWeight="700">VEHICLE DETAILS</Typography>
+                                                    <Typography variant="body1" fontWeight="800" color="#1A2B3C">
+                                                        {policy.vehicle_make} {policy.vehicle_model}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="#4A6080" fontWeight="600">
+                                                        {policy.vehicle_number} • {policy.vehicle_year}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Grid>
+                                        <Grid size={{ xs: 6, md: 2.5 }}>
+                                            <Typography variant="caption" color="text.secondary" fontWeight="700">INSURER</Typography>
+                                            <Typography variant="body1" fontWeight="700" color="#1A2B3C">{policy.insurer_name}</Typography>
+                                            <Typography variant="caption" color="#0F9D6A" fontWeight="700">VALID TILL: {format(new Date(policy.policy_end_date), 'dd MMM yyyy')}</Typography>
+                                        </Grid>
+                                        <Grid size={{ xs: 6, md: 2 }}>
+                                            <Typography variant="caption" color="text.secondary" fontWeight="700">IDV VALUE</Typography>
+                                            <Typography variant="h6" fontWeight="900" color="#2D5F9E">₹{Number(policy.idv_value).toLocaleString('en-IN')}</Typography>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 3.5 }}>
+                                            <Typography variant="caption" color="text.secondary" fontWeight="700" sx={{ mb: 1, display: 'block' }}>COVERAGE & ADD-ONS</Typography>
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                {policy.own_damage_cover && <Chip label="OD" size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: '#E8F5E9', color: '#2E7D32', fontWeight: 700 }} />}
+                                                {policy.third_party_cover && <Chip label="TP" size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: '#E8F5E9', color: '#2E7D32', fontWeight: 700 }} />}
+                                                {policy.personal_accident_cover && <Chip label="PA" size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: '#E8F5E9', color: '#2E7D32', fontWeight: 700 }} />}
+                                                {policy.zero_depreciation && <Chip label="Zero Dep" size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: '#FFF3E0', color: '#E65100', fontWeight: 700 }} />}
+                                                {policy.roadside_assistance && <Chip label="RSA" size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: '#F3E5F5', color: '#7B1FA2', fontWeight: 700 }} />}
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Stats Row */}
                         <Grid container spacing={3} sx={{ mb: 6 }}>

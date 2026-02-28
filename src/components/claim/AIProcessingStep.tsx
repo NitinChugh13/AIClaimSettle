@@ -12,13 +12,11 @@ import {
     Button,
     CircularProgress,
     Avatar,
-    Divider,
     Stack,
     Alert
 } from '@mui/material';
 import {
     CheckCircle as CheckCircleIcon,
-    ErrorOutline as AlertCircleIcon,
     ArrowForward as ArrowRightIcon,
     AutoFixHigh as LoaderIcon,
     Search as SearchCodeIcon,
@@ -31,21 +29,22 @@ import {
 } from '@mui/icons-material';
 
 interface Props {
+    claimId: string;
     formData: ClaimFormData;
     onComplete: (analysis: AIAnalysisResult) => void;
     onBack: () => void;
 }
 
 const PROCESSING_STEPS = [
-    { id: 1, text: 'Calibrating Optical Sensors...', icon: ScanIcon, delay: 500 },
-    { id: 2, text: 'Segmenting Damage Geometries...', icon: BinaryIcon, delay: 2000 },
-    { id: 3, text: 'Querying OEM Pricing Matrix...', icon: DatabaseIcon, delay: 4000 },
-    { id: 4, text: 'Calculating Material Decay (Depreciation)...', icon: ActivityIcon, delay: 5500 },
-    { id: 5, text: 'Engaging Fraud Detection Neural Net...', icon: FingerprintIcon, delay: 7000 },
-    { id: 6, text: 'Synthesizing Final Assessment...', icon: SearchCodeIcon, delay: 8500 },
+    { id: 1, text: 'Scanning Optical Evidence Nodes...', icon: ScanIcon, delay: 500 },
+    { id: 2, text: 'Executing Geometry Segmentation...', icon: BinaryIcon, delay: 1500 },
+    { id: 3, text: 'Syncing OEM Component Pricing...', icon: DatabaseIcon, delay: 3000 },
+    { id: 4, text: 'Calculating Material Depreciation...', icon: ActivityIcon, delay: 4500 },
+    { id: 5, text: 'Engaging Fraud Detection Neural Net...', icon: FingerprintIcon, delay: 6000 },
+    { id: 6, text: 'Finalizing IRDA-Compliant Assessment...', icon: SearchCodeIcon, delay: 7500 },
 ];
 
-export default function AIProcessingStep({ formData, onComplete, onBack }: Props) {
+export default function AIProcessingStep({ claimId, formData, onComplete, onBack }: Props) {
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
     const [currentIdx, setCurrentIdx] = useState(0);
     const [done, setDone] = useState(false);
@@ -55,56 +54,53 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
     useEffect(() => {
         let cancelled = false;
 
-        const runProcessing = async () => {
+        const runAnalysis = async () => {
             try {
-                const res = await fetch('/api/ai/analyze', {
+                // Start timing and processing steps
+                const processingPromise = (async () => {
+                    for (let i = 0; i < PROCESSING_STEPS.length; i++) {
+                        const wait = PROCESSING_STEPS[i].delay - (i > 0 ? PROCESSING_STEPS[i - 1].delay : 0);
+                        await new Promise(r => setTimeout(r, wait));
+                        if (cancelled) return;
+                        setCompletedSteps(prev => [...prev, PROCESSING_STEPS[i].id]);
+                        setCurrentIdx(i + 1);
+                    }
+                })();
+
+                // Call the real API
+                const res = await fetch(`/api/claims/${claimId}/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        policy: formData.policy,
-                        incidentType: formData.incidentType,
-                        incidentLocation: formData.incidentLocation,
-                        photoCount: formData.photos?.length ?? 0,
-                        photos: formData.photos?.slice(0, 3).map(p => ({ base64: p.base64, mediaType: p.type })) || [],
-                    }),
                 });
 
                 if (!res.ok) {
                     const errorData = await res.json();
-                    throw new Error(errorData.details || errorData.error || 'AI analysis failed');
+                    throw new Error(errorData.error || 'AI analysis failed');
                 }
 
-                const result: AIAnalysisResult = await res.json();
+                const result = await res.json();
 
-                for (let i = 0; i < PROCESSING_STEPS.length; i++) {
-                    const wait = PROCESSING_STEPS[i].delay - (i > 0 ? PROCESSING_STEPS[i - 1].delay : 0);
-                    await new Promise(r => setTimeout(r, wait));
-                    if (cancelled) return;
-                    setCompletedSteps(prev => [...prev, PROCESSING_STEPS[i].id]);
-                    setCurrentIdx(i + 1);
-                }
+                // Wait for processing UI to catch up if needed
+                await processingPromise;
 
-                await new Promise(r => setTimeout(r, 800));
                 if (!cancelled) {
-                    setAnalysis(result);
+                    setAnalysis(result.analysis);
                     setDone(true);
                 }
             } catch (err: any) {
                 if (!cancelled) {
                     setError(err.message || 'Analysis failed. Please retry.');
-                    setCompletedSteps([]);
                     setDone(false);
                 }
             }
         };
 
-        runProcessing();
+        runAnalysis();
         return () => { cancelled = true; };
-    }, [formData]);
+    }, [claimId]);
 
     return (
         <Box sx={{ width: '100%', maxWidth: 680, mx: 'auto' }}>
-            {/* Header */}
             <Box sx={{ textAlign: 'center', mb: 5 }}>
                 <AnimatePresence mode="wait">
                     {done ? (
@@ -124,9 +120,7 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                             </Avatar>
                         </motion.div>
                     ) : (
-                        <motion.div
-                            key="processing"
-                        >
+                        <motion.div key="processing">
                             <Box sx={{ position: 'relative', width: 80, height: 80, mx: 'auto', mb: 3 }}>
                                 <CircularProgress
                                     size={80}
@@ -151,17 +145,16 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                     mb: 1,
                     fontWeight: 700
                 }}>
-                    {done ? 'Analysis Finalized' : 'AI Processing'}
+                    {done ? 'Analysis Finalized' : 'Neuronal Analytics'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#5B7692', maxWidth: 400, mx: 'auto' }}>
                     {done
-                        ? 'Your damage assessment is ready for review.'
-                        : 'Synchronizing multi-modal evidence with OEM datasets...'}
+                        ? 'Your IRDA-compliant damage assessment is ready for review.'
+                        : 'Engaging Groq AI for real-time visual assessment...'}
                 </Typography>
             </Box>
 
             <Grid container spacing={4}>
-                {/* Processing steps */}
                 <Grid size={{ xs: 12, lg: 6 }}>
                     <Paper sx={{
                         borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA',
@@ -170,7 +163,7 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                         <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
                             <ActivityIcon sx={{ fontSize: 20, color: '#2D5F9E' }} />
                             <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2, color: '#8DA5BE' }}>
-                                Execution Stack
+                                Analysis Stack
                             </Typography>
                         </Box>
                         <Stack spacing={2.5} sx={{ p: 3 }}>
@@ -214,7 +207,6 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                     </Paper>
                 </Grid>
 
-                {/* Result summary */}
                 <Grid size={{ xs: 12, lg: 6 }}>
                     <AnimatePresence mode="wait">
                         {done && analysis ? (
@@ -237,7 +229,7 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                                                     {analysis.recommendation === 'auto_approve' ? 'Auto-Approved' : 'Verified'}
                                                 </Typography>
                                                 <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: analysis.recommendation === 'auto_approve' ? '#0F9D6A' : '#2D5F9E' }}>
-                                                    Confidence Threshold Cleared
+                                                    Policy Thresholds Validated
                                                 </Typography>
                                             </Box>
                                         </Stack>
@@ -247,13 +239,17 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                                         <Grid size={{ xs: 6 }}>
                                             <Paper sx={{ p: 2.5, borderRadius: '14px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
                                                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>Valuation</Typography>
-                                                <Typography variant="h5" fontWeight="800" sx={{ color: '#1E3A5F' }}>₹{analysis.total_estimate.final_claim_amount.toLocaleString()}</Typography>
+                                                <Typography variant="h5" fontWeight="800" sx={{ color: '#1E3A5F' }}>
+                                                    ₹{Math.round(analysis.total_estimate?.final_claim_amount || 0).toLocaleString()}
+                                                </Typography>
                                             </Paper>
                                         </Grid>
                                         <Grid size={{ xs: 6 }}>
                                             <Paper sx={{ p: 2.5, borderRadius: '14px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
-                                                <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>AI Confidence</Typography>
-                                                <Typography variant="h5" fontWeight="800" sx={{ color: '#2D5F9E' }}>{analysis.confidence_score.toFixed(0)}%</Typography>
+                                                <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>Confidence</Typography>
+                                                <Typography variant="h5" fontWeight="800" sx={{ color: '#2D5F9E' }}>
+                                                    {analysis.confidence_score?.toString().replace('%', '')}%
+                                                </Typography>
                                             </Paper>
                                         </Grid>
                                     </Grid>
@@ -269,22 +265,17 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                                             '&:hover': { bgcolor: '#1E3A5F', transform: 'translateY(-2px)' }
                                         }}
                                     >
-                                        Proceed to Final Summary
+                                        Review Final Summary
                                     </Button>
                                 </Stack>
                             </motion.div>
                         ) : (
-                            <motion.div
-                                key="scanning"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                            >
+                            <motion.div key="scanning" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                                 <Paper sx={{
                                     height: 310, borderRadius: '20px', display: 'flex', flexDirection: 'column',
                                     alignItems: 'center', justifyContent: 'center', bgcolor: 'white',
                                     border: '1px solid #CBD8EA', position: 'relative', overflow: 'hidden'
                                 }}>
-                                    {/* Scanning line */}
                                     <motion.div
                                         animate={{ top: ['0%', '100%'] }}
                                         transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
@@ -307,10 +298,10 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                                             ))}
                                         </Stack>
                                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#2D5F9E', textTransform: 'uppercase', letterSpacing: 2.5, mb: 1, display: 'block' }}>
-                                            SIMULATION ACTIVE
+                                            AI ENGINE ACTIVE
                                         </Typography>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1 }}>
-                                            Processing optical nodes...
+                                            Analyzing claim data...
                                         </Typography>
                                     </Box>
                                 </Paper>
@@ -319,7 +310,6 @@ export default function AIProcessingStep({ formData, onComplete, onBack }: Props
                     </AnimatePresence>
                 </Grid>
 
-                {/* Error state */}
                 {error && (
                     <Grid size={{ xs: 12 }}>
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>

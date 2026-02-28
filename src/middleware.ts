@@ -33,9 +33,24 @@ export async function middleware(request: NextRequest) {
 
         try {
             // Verify token using jose (Edge-compatible)
-            await jose.jwtVerify(authToken, secret);
+            const { payload } = await jose.jwtVerify(authToken, secret);
+            const isPolicyVerified = payload.policy_verified === true;
 
-            // Token is valid, let them proceed
+            // Step F logic: Redirect based on policy verification status
+            if (!isPolicyVerified && pathname !== '/onboarding') {
+                // Logged in but no policy linked, redirect to onboarding
+                const url = request.nextUrl.clone();
+                url.pathname = '/onboarding';
+                return NextResponse.redirect(url);
+            }
+
+            if (isPolicyVerified && pathname === '/onboarding') {
+                // Policy already linked, onboarding no longer needed
+                const url = request.nextUrl.clone();
+                url.pathname = '/dashboard';
+                return NextResponse.redirect(url);
+            }
+
             return NextResponse.next();
         } catch (error) {
             console.error('Middleware JWT Verification Failed:', error);

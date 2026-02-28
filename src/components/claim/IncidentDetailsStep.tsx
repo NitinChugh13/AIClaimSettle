@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,7 +19,8 @@ import {
     MenuItem,
     Avatar,
     InputAdornment,
-    FormHelperText
+    FormHelperText,
+    CircularProgress
 } from '@mui/material';
 import {
     LocationOn as MapPinIcon,
@@ -26,12 +28,12 @@ import {
     AccessTime as ClockIcon,
     ChevronLeft as ChevronLeftIcon,
     ArrowForward as ArrowRightIcon,
-    ErrorOutline as AlertCircleIcon,
+    Message as MessageSquareIcon,
     AccountBalance as LandmarkIcon,
-    ChatBubbleOutline as MessageSquareIcon,
-    Description as DescriptionIcon
+    CurrencyRupee as RupeeIcon
 } from '@mui/icons-material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 const schema = z.object({
     incidentDate: z.string().min(1, 'Select date of incident'),
@@ -41,6 +43,7 @@ const schema = z.object({
     incidentType: z.enum(['accident', 'flood', 'fire', 'theft', 'vandalism', 'hail', 'other']),
     firFiled: z.enum(['yes', 'no']),
     firNumber: z.string().optional(),
+    estimatedRepairCost: z.string().min(1, 'Enter estimated repair cost').refine(v => !isNaN(Number(v)), 'Invalid amount'),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -66,28 +69,57 @@ function todayStr() {
 }
 
 export default function IncidentDetailsStep({ policy, onComplete, onBack }: Props) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const { register, handleSubmit, watch, control, formState: { errors } } = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: {
             incidentDate: todayStr(),
             incidentType: 'accident',
             firFiled: 'no',
+            incidentTime: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
         },
     });
 
     const firFiled = watch('firFiled');
     const description = watch('incidentDescription') ?? '';
 
-    const onSubmit = (values: FormValues) => {
-        onComplete({
-            incidentDate: values.incidentDate,
-            incidentTime: values.incidentTime,
-            incidentLocation: values.incidentLocation,
-            incidentDescription: values.incidentDescription,
-            incidentType: values.incidentType,
-            firFiled: values.firFiled === 'yes',
-            firNumber: values.firNumber,
-        });
+    const onSubmit = async (values: FormValues) => {
+        setIsSubmitting(true);
+        try {
+            const response = await fetch('/api/claims/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    incident_date: values.incidentDate,
+                    incident_time: values.incidentTime,
+                    incident_location: values.incidentLocation,
+                    incident_type: values.incidentType,
+                    incident_description: values.incidentDescription,
+                    fir_number: values.firNumber,
+                    estimated_repair_cost: Number(values.estimatedRepairCost)
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                onComplete({
+                    ...values,
+                    estimatedRepairCost: Number(values.estimatedRepairCost),
+                    claimId: result.claim_id,
+                    claimNumber: result.claim_number,
+                    firFiled: values.firFiled === 'yes'
+                });
+                toast.success(`Claim ${result.claim_number} registered successfully!`);
+            } else {
+                toast.error(result.error || 'Failed to submit claim');
+            }
+        } catch (error) {
+            toast.error('Network error. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -107,7 +139,6 @@ export default function IncidentDetailsStep({ policy, onComplete, onBack }: Prop
             </Box>
 
             <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {/* Chronology & Location */}
                 <Paper sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
                     <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
                         <Avatar sx={{ bgcolor: 'rgba(45, 95, 158, 0.08)', color: '#2D5F9E', width: 40, height: 40, border: '1px solid rgba(45, 95, 158, 0.15)', borderRadius: '10px' }}>
@@ -175,36 +206,57 @@ export default function IncidentDetailsStep({ policy, onComplete, onBack }: Prop
                     </Grid>
                 </Paper>
 
-                {/* Incident Reconstruction */}
                 <Paper sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
                     <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
                         <Avatar sx={{ bgcolor: 'rgba(45, 95, 158, 0.08)', color: '#2D5F9E', width: 40, height: 40, border: '1px solid rgba(45, 95, 158, 0.15)', borderRadius: '10px' }}>
-                            <MessageSquareIcon sx={{ fontSize: 20 }} />
+                            <RupeeIcon sx={{ fontSize: 20 }} />
                         </Avatar>
-                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F' }}>Incident Reconstruction</Typography>
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F' }}>Incident Details & Estimates</Typography>
                     </Box>
                     <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <FormControl fullWidth error={!!errors.incidentType}>
-                            <InputLabel>Incident Classification</InputLabel>
-                            <Controller
-                                name="incidentType"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        {...field}
-                                        label="Incident Classification"
-                                        sx={{ borderRadius: '12px' }}
-                                    >
-                                        {INCIDENT_TYPES.map(type => (
-                                            <MenuItem key={type.value} value={type.value}>
-                                                <Typography variant="body2" fontWeight="bold">{type.label}</Typography>
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                )}
-                            />
-                            {errors.incidentType && <FormHelperText>{errors.incidentType.message}</FormHelperText>}
-                        </FormControl>
+                        <Grid container spacing={3}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <FormControl fullWidth error={!!errors.incidentType}>
+                                    <InputLabel>Incident Classification</InputLabel>
+                                    <Controller
+                                        name="incidentType"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                {...field}
+                                                label="Incident Classification"
+                                                sx={{ borderRadius: '12px' }}
+                                            >
+                                                {INCIDENT_TYPES.map(type => (
+                                                    <MenuItem key={type.value} value={type.value}>
+                                                        <Typography variant="body2" fontWeight="bold">{type.label}</Typography>
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.incidentType && <FormHelperText>{errors.incidentType.message}</FormHelperText>}
+                                </FormControl>
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Estimated Repair Cost"
+                                    placeholder="e.g. 25000"
+                                    {...register('estimatedRepairCost')}
+                                    error={!!errors.estimatedRepairCost}
+                                    helperText={errors.estimatedRepairCost?.message}
+                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <RupeeIcon sx={{ color: '#8DA5BE', fontSize: 18 }} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
 
                         <Box>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -275,11 +327,11 @@ export default function IncidentDetailsStep({ policy, onComplete, onBack }: Prop
                     </Box>
                 </Paper>
 
-                {/* Actions */}
                 <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
                     <Button
                         onClick={onBack}
                         variant="outlined"
+                        disabled={isSubmitting}
                         startIcon={<ChevronLeftIcon />}
                         sx={{
                             px: 3,
@@ -297,7 +349,8 @@ export default function IncidentDetailsStep({ policy, onComplete, onBack }: Prop
                         type="submit"
                         variant="contained"
                         fullWidth
-                        endIcon={<ArrowRightIcon />}
+                        disabled={isSubmitting}
+                        endIcon={!isSubmitting && <ArrowRightIcon />}
                         sx={{
                             py: 1.8,
                             borderRadius: '12px',
@@ -307,7 +360,7 @@ export default function IncidentDetailsStep({ policy, onComplete, onBack }: Prop
                             '&:hover': { bgcolor: '#1E3A5F', transform: 'translateY(-2px)' }
                         }}
                     >
-                        Continue to Photo Upload
+                        {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Continue to Photo Upload'}
                     </Button>
                 </Box>
             </Box>

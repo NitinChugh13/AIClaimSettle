@@ -10,21 +10,26 @@ export interface Policy {
   holder_name: string
   holder_phone: string
   holder_email?: string
-  vehicle_registration: string
+  vehicle_number: string
   vehicle_make: string
   vehicle_model: string
   vehicle_variant?: string
   vehicle_year: number
-  vehicle_type: VehicleType
-  fuel_type: FuelType
-  engine_cc?: number
-  idv: number
-  sum_insured?: number
+  vehicle_type: string
+  fuel_type?: FuelType
+  engine_number?: string
+  chassis_number?: string
+  idv_value: number
   policy_start_date: string
   policy_end_date: string
   ncb_percentage: number
   zero_depreciation: boolean
+  depreciation_rate: number
   insurer_name: string
+  own_damage_cover: boolean
+  third_party_cover: boolean
+  personal_accident_cover: boolean
+  roadside_assistance: boolean
   status: PolicyStatus
   created_at: string
 }
@@ -56,34 +61,30 @@ export type AIRecommendation =
   | 'escalate'
 
 export interface Claim {
-  id: string
-  claim_number: string
+  user_id: string
   policy_id: string
   incident_date: string
-  incident_time: string
+  incident_time?: string
   incident_location: string
+  incident_type: string
   incident_description: string
-  incident_type: IncidentType
   fir_number?: string
-  fir_filed: boolean
-  status: ClaimStatus
-  settlement_type: 'cashless' | 'reimbursement'
-  ai_analysis_complete: boolean
-  ai_confidence_score?: number
-  ai_total_estimate?: number
-  ai_recommendation?: AIRecommendation
-  ai_fraud_score?: number
-  ai_processing_time_seconds?: number
-  approved_amount?: number
-  depreciation_applied?: number
-  deductible_applied?: number
-  final_payable?: number
-  settled_at?: string
-  rejection_reason?: string
-  submitted_at?: string
+  status: string
+  estimated_repair_cost: number
+  ai_approved_amount?: number
+  ai_depreciation_applied?: number
+  ai_ncb_deduction?: number
+  ai_final_amount?: number
+  ai_reasoning?: string
+  ai_confidence?: string
+  ai_damaged_parts?: string[]
+  ai_recommendation?: string
+  surveyor_amount?: number
+  final_approved_amount?: number
   created_at: string
   updated_at: string
   policy?: Policy
+  documents?: ClaimPhoto[]
 }
 
 export type PhotoType =
@@ -201,5 +202,5 @@ export interface UploadedPhoto {
   }
   quality_score?: number
   quality_feedback?: string
-    base64?: string
+  base64?: string
 }

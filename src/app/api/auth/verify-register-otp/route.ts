@@ -77,7 +77,8 @@ export async function POST(request: Request) {
         const tokenPayload = {
             userId: updatedUser.id,
             mobile: updatedUser.mobile,
-            fullName: updatedUser.full_name
+            fullName: updatedUser.full_name,
+            policy_verified: false
         };
         const token = await generateToken(tokenPayload, '7d');
 

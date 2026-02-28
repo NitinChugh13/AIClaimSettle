@@ -48,6 +48,7 @@ const STEPS = [
 
 export interface ClaimFormData {
     policy?: Policy;
+    claimId?: string;
     claimNumber?: string;
     incidentDate?: string;
     incidentTime?: string;
@@ -56,6 +57,7 @@ export interface ClaimFormData {
     incidentType?: string;
     firFiled?: boolean;
     firNumber?: string;
+    estimatedRepairCost?: number;
     photos?: UploadedPhoto[];
     aiAnalysis?: AIAnalysisResult;
 }
@@ -142,8 +144,8 @@ export default function NewClaimPage() {
                         >
                             {activeStep === 0 && (
                                 <PolicyVerificationStep
-                                    onComplete={(policy, claimNumber) => {
-                                        updateFormData({ policy, claimNumber });
+                                    onComplete={(policy: Policy) => {
+                                        updateFormData({ policy });
                                         handleNext();
                                     }}
                                 />
@@ -160,6 +162,7 @@ export default function NewClaimPage() {
                             )}
                             {activeStep === 2 && (
                                 <PhotoUploadStep
+                                    claimId={formData.claimId!}
                                     onComplete={(photos) => {
                                         updateFormData({ photos });
                                         handleNext();
@@ -169,6 +172,7 @@ export default function NewClaimPage() {
                             )}
                             {activeStep === 3 && (
                                 <AIProcessingStep
+                                    claimId={formData.claimId!}
                                     formData={formData}
                                     onComplete={(analysis) => {
                                         updateFormData({ aiAnalysis: analysis });

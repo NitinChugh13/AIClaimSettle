@@ -74,11 +74,11 @@ function DamageItemCard({ item }: { item: AIDamageItem }) {
                         />
                     </Stack>
                     <Grid container spacing={4}>
-                        <Grid>
+                        <Grid size={{ xs: 6 }}>
                             <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>Net Estimate</Typography>
-                            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.subtotal_net.toLocaleString()}</Typography>
+                            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.subtotal_net.toLocaleString('en-IN')}</Typography>
                         </Grid>
-                        <Grid>
+                        <Grid size={{ xs: 6 }}>
                             <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>AI Confidence</Typography>
                             <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#2D5F9E' }}>{item.confidence.toFixed(0)}%</Typography>
                         </Grid>
@@ -88,11 +88,11 @@ function DamageItemCard({ item }: { item: AIDamageItem }) {
                     <Stack spacing={0.5}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography variant="caption" fontWeight="bold" sx={{ color: '#5B7692' }}>OEM PRICE</Typography>
-                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.oem_price.toLocaleString()}</Typography>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.oem_price.toLocaleString('en-IN')}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography variant="caption" fontWeight="bold" sx={{ color: '#5B7692' }}>LABOR</Typography>
-                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.labor_cost.toLocaleString()}</Typography>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#1E3A5F' }}>₹{item.labor_cost.toLocaleString('en-IN')}</Typography>
                         </Box>
                         <Divider sx={{ my: 0.5, borderColor: '#CBD8EA' }} />
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -124,6 +124,7 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
     }
 
     const est = analysis.total_estimate;
+    const ai_approved_amount = est.final_claim_amount;
 
     const recConfig = {
         auto_approve: { title: 'Auto-Approval Confirmed', icon: ShieldCheckIcon, isGreen: true },
@@ -161,18 +162,24 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
 
             {/* Top metrics */}
             <Grid container spacing={2} sx={{ mb: 4 }}>
-                {[
-                    { label: 'AI Accuracy', val: `${analysis.confidence_score.toFixed(0)}%`, color: '#2D5F9E' },
-                    { label: 'Settlement Amount', val: `₹${est.final_claim_amount.toLocaleString()}`, color: '#0F9D6A' },
-                    { label: 'Risk Level', val: analysis.fraud_indicators.length === 0 ? 'Low' : 'Moderate', color: '#1E3A5F' },
-                ].map((stat) => (
-                    <Grid size={{ xs: 4 }} key={stat.label}>
-                        <Paper sx={{ p: 2.5, borderRadius: '16px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
-                            <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: '#8DA5BE', display: 'block', mb: 0.5 }}>{stat.label}</Typography>
-                            <Typography variant="h5" fontWeight="800" sx={{ color: stat.color, letterSpacing: -0.5 }}>{stat.val}</Typography>
-                        </Paper>
-                    </Grid>
-                ))}
+                <Grid size={{ xs: 4 }} >
+                    <Paper sx={{ p: 2.5, borderRadius: '16px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: '#8DA5BE', display: 'block', mb: 0.5 }}>AI Accuracy</Typography>
+                        <Typography variant="h5" fontWeight="800" sx={{ color: '#2D5F9E', letterSpacing: -0.5 }}>{analysis.confidence_score.toFixed(0)}%</Typography>
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 4 }} >
+                    <Paper sx={{ p: 2.5, borderRadius: '16px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: '#8DA5BE', display: 'block', mb: 0.5 }}>AI Valuation</Typography>
+                        <Typography variant="h5" fontWeight="800" sx={{ color: '#0F9D6A', letterSpacing: -0.5 }}>₹{ai_approved_amount.toLocaleString('en-IN')}</Typography>
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 4 }} >
+                    <Paper sx={{ p: 2.5, borderRadius: '16px', border: '1px solid #CBD8EA', boxShadow: '0 2px 8px rgba(30, 58, 95, 0.05)' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: '#8DA5BE', display: 'block', mb: 0.5 }}>Risk Level</Typography>
+                        <Typography variant="h5" fontWeight="800" sx={{ color: '#1E3A5F', letterSpacing: -0.5 }}>{analysis.fraud_indicators.length === 0 ? 'Low' : 'Moderate'}</Typography>
+                    </Paper>
+                </Grid>
             </Grid>
 
             {/* Recommendation banner */}
@@ -250,7 +257,7 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
                                                 textTransform: 'uppercase', letterSpacing: 0.5
                                             }}>{row.label}</Typography>
                                             <Typography variant="body1" fontWeight="bold" sx={{ color: row.minus ? '#D32F2F' : '#1E3A5F' }}>
-                                                ₹{Math.abs(row.val).toLocaleString()}
+                                                ₹{Math.abs(row.val).toLocaleString('en-IN')}
                                             </Typography>
                                         </Box>
                                     ))}
@@ -263,7 +270,7 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
                                     }}>
                                         <Box>
                                             <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F9D6A', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>Final Settlement Payable</Typography>
-                                            <Typography variant="h4" fontWeight="900" sx={{ color: '#065F46', letterSpacing: -1 }}>₹{est.final_claim_amount.toLocaleString()}</Typography>
+                                            <Typography variant="h4" fontWeight="900" sx={{ color: '#065F46', letterSpacing: -1 }}>₹{ai_approved_amount.toLocaleString('en-IN')}</Typography>
                                         </Box>
                                         <Chip
                                             label={est.limit_check.toUpperCase()}

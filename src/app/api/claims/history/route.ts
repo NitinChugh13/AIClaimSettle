@@ -1,25 +1,67 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { claims } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
+import { verifyToken } from '@/lib/auth';
+
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const policy = searchParams.get('policy');
-
-    if (!policy) {
-        return NextResponse.json({ error: 'Policy number required' }, { status: 400 });
-    }
-
     try {
-        const history = await db.query.claims.findMany({
-            where: eq(claims.policyNumber, policy),
-            orderBy: [desc(claims.createdAt)],
-        });
+        const cookieStore = await cookies();
+        const token = cookieStore.get('auth_token')?.value;
 
-        return NextResponse.json(history);
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const decoded = await verifyToken(token);
+        if (!decoded) {
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const policyNumber = searchParams.get('policy');
+
+        let query = supabaseAdmin
+            .from('claims')
+            .select(`
+                *,
+                policy:policies (*)
+            `)
+            .eq('user_id', decoded.userId)
+            .order('created_at', { ascending: false });
+
+        if (policyNumber) {
+            // Join with policies table to filter by number
+            // Actually, we've already joined for select, just add the filter
+            query = query.filter('policy.policy_number', 'eq', policyNumber);
+        }
+
+        const { data: claims, error } = await query;
+
+        if (error) {
+            console.error('Fetch claims error:', error);
+            return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        }
+
+        // Map to the format the dashboard expects
+        const formattedClaims = claims.map((claim: any) => ({
+            id: claim.id,
+            policyNumber: claim.policy?.policy_number || 'N/A',
+            vehicleReg: claim.policy?.vehicle_number || 'N/A',
+            incidentType: claim.incident_type,
+            incidentDate: claim.incident_date,
+            totalAmount: claim.ai_final_amount || claim.estimated_repair_cost || 0,
+            status: claim.status,
+            createdAt: claim.created_at
+        }));
+
+        return NextResponse.json(formattedClaims);
     } catch (error) {
-        console.error('Error fetching claim history:', error);
-        return NextResponse.json({ error: 'Failed to fetch history' }, { status: 500 });
+        console.error('History API error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

@@ -16,9 +16,7 @@ import {
     Avatar,
     TextField,
     CircularProgress,
-    Divider,
     Stack,
-    IconButton,
     Chip
 } from '@mui/material';
 import {
@@ -30,8 +28,7 @@ import {
     FlashOn as ZapIcon,
     AccountBalanceWallet as CreditCardIcon,
     Insights as ActivityIcon,
-    Shield as ShieldCheckIcon,
-    Launch as ExternalLinkIcon
+    Shield as ShieldCheckIcon
 } from '@mui/icons-material';
 
 interface Props {
@@ -40,23 +37,23 @@ interface Props {
 
 export default function ConfirmationStep({ formData }: Props) {
     const router = useRouter();
-    const [bankAccount, setBankAccount] = useState('');
-    const [ifsc, setIfsc] = useState('');
-    const [submittingBank, setSubmittingBank] = useState(false);
-    const [bankSubmitted, setBankSubmitted] = useState(false);
-
     const analysis = formData.aiAnalysis!;
     const isAutoApproved = analysis.recommendation === 'auto_approve';
     const amount = analysis.total_estimate.final_claim_amount;
     const now = new Date();
 
     const handleDownloadReport = () => {
+        if (!generateClaimReport) {
+            toast.error('PDF Generator not initialized');
+            return;
+        }
+
         generateClaimReport({
             claimId: formData.claimNumber || 'N/A',
             policyNumber: formData.policy?.policy_number || 'N/A',
             holderName: formData.policy?.holder_name || 'N/A',
             vehicleModel: formData.policy?.vehicle_model || 'N/A',
-            vehicleReg: formData.policy?.vehicle_registration || 'N/A',
+            vehicleReg: formData.policy?.vehicle_number || 'N/A',
             incidentType: formData.incidentType || 'N/A',
             incidentDate: formData.incidentDate || format(new Date(), 'yyyy-MM-dd'),
             incidentLocation: formData.incidentLocation || 'N/A',
@@ -69,53 +66,25 @@ export default function ConfirmationStep({ formData }: Props) {
             })),
             status: isAutoApproved ? 'Approved' : 'Pending Review',
         });
-        toast.success('Report downloaded successfully');
-    };
-
-    const handleBankSubmit = async () => {
-        setSubmittingBank(true);
-        try {
-            const res = await fetch(`/api/claims/${formData.claimNumber}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    bankDetails: { account: bankAccount, ifsc },
-                    status: isAutoApproved ? 'settled' : undefined,
-                }),
-            });
-            if (res.ok) {
-                setBankSubmitted(true);
-                toast.success('Bank details saved for settlement');
-            } else {
-                toast.error('Failed to save bank details');
-            }
-        } catch {
-            toast.error('Network error');
-        } finally {
-            setSubmittingBank(false);
-        }
+        toast.success('IRDA-Compliant Report Generated');
     };
 
     const timeline = [
         { done: true, label: 'Policy Verified', time: format(now, 'hh:mm a'), icon: ActivityIcon },
-        { done: true, label: 'Evidence Validated', time: format(now, 'hh:mm a'), note: `${analysis.confidence_score.toFixed(0)}% accuracy`, icon: ZapIcon },
+        { done: true, label: 'Evidence Synced', time: format(now, 'hh:mm a'), note: `${analysis.confidence_score}% Match`, icon: ZapIcon },
         {
-            done: isAutoApproved,
-            label: isAutoApproved ? 'Auto-Approved' : 'Queued for Officer Review',
-            time: isAutoApproved ? format(now, 'hh:mm a') : 'T+30m',
+            done: true,
+            label: isAutoApproved ? 'Auto-Approved' : 'Officer Review Initialized',
+            time: format(now, 'hh:mm a'),
             icon: isAutoApproved ? ShieldCheckIcon : ClockIcon,
         },
-        { done: bankSubmitted, label: 'Bank Details Linked', time: bankSubmitted ? 'Active' : 'Awaiting', icon: CreditCardIcon },
+        { done: true, label: 'Protocol Finalized', time: format(now, 'hh:mm a'), icon: ShieldCheckIcon },
     ];
 
     return (
         <Box sx={{ width: '100%', maxWidth: 680, mx: 'auto' }}>
-            {/* Success header */}
             <Box sx={{ textAlign: 'center', mb: 5 }}>
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                >
+                <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
                     <Avatar sx={{
                         width: 80, height: 80, mx: 'auto', mb: 3,
                         bgcolor: 'rgba(15, 157, 106, 0.08)',
@@ -132,24 +101,23 @@ export default function ConfirmationStep({ formData }: Props) {
                     mb: 1,
                     fontWeight: 700
                 }}>
-                    Claim Submitted!
+                    Claim Locked & Validated
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#5B7692', maxWidth: 360, mx: 'auto' }}>
-                    Your claim has been queued for settlement processing.
+                    Your claim protocol has been successfully transmitted to the insurer nodes.
                 </Typography>
             </Box>
 
-            {/* Summary stats */}
             <Paper sx={{ p: 4, mb: 4, borderRadius: '20px', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
                 <Grid container spacing={4}>
                     {[
-                        { label: 'Claim ID', val: formData.claimNumber, mono: true, color: '#2D5F9E' },
+                        { label: 'Protocol ID', val: formData.claimNumber, mono: true, color: '#2D5F9E' },
                         {
-                            label: 'Status', val: isAutoApproved ? 'Auto-Approved' : 'Pending Review',
+                            label: 'Vector State', val: isAutoApproved ? 'Approved' : 'Awaiting Review',
                             badge: true, isGreen: isAutoApproved,
                         },
-                        { label: 'Settlement Amount', val: `₹${amount.toLocaleString()}`, color: '#1E3A5F' },
-                        { label: 'Payment Mode', val: 'Instant NEFT', color: '#1E3A5F' },
+                        { label: 'Settlement Node', val: `₹${Math.round(amount).toLocaleString()}`, color: '#1E3A5F' },
+                        { label: 'Transfer Channel', val: 'Direct NEFT', color: '#1E3A5F' },
                     ].map((item: any) => (
                         <Grid size={{ xs: 6 }} key={item.label}>
                             <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 0.5 }}>{item.label}</Typography>
@@ -159,8 +127,8 @@ export default function ConfirmationStep({ formData }: Props) {
                                     size="small"
                                     sx={{
                                         fontWeight: 900, fontSize: '0.65rem',
-                                        bgcolor: item.isGreen ? 'rgba(15, 157, 106, 0.1)' : 'rgba(229, 160, 32, 0.1)',
-                                        color: item.isGreen ? '#0F9D6A' : '#92400E'
+                                        bgcolor: item.isGreen ? 'rgba(15, 157, 106, 0.1)' : 'rgba(45, 95, 158, 0.1)',
+                                        color: item.isGreen ? '#0F9D6A' : '#2D5F9E'
                                     }}
                                 />
                             ) : (
@@ -173,77 +141,62 @@ export default function ConfirmationStep({ formData }: Props) {
 
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid size={{ xs: 12, md: 7 }}>
-                    <AnimatePresence mode="wait">
-                        {!bankSubmitted ? (
-                            <motion.div
-                                key="bank-form"
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                            >
-                                <Paper sx={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
-                                    <Box sx={{ bgcolor: 'rgba(240, 246, 255, 0.6)', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2, borderBottom: '1px solid #CBD8EA' }}>
-                                        <Avatar sx={{ bgcolor: 'rgba(45, 95, 158, 0.08)', color: '#2D5F9E', width: 40, height: 40, borderRadius: '10px' }}>
-                                            <CreditCardIcon sx={{ fontSize: 20 }} />
-                                        </Avatar>
-                                        <Box>
-                                            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1E3A5F' }}>Settlement Details</Typography>
-                                            <Typography variant="caption" sx={{ color: '#5B7692', display: 'block' }}>Link account for direct transfer</Typography>
-                                        </Box>
-                                    </Box>
-                                    <Stack spacing={2.5} sx={{ p: 3 }}>
-                                        <TextField
-                                            fullWidth
-                                            label="Account Number"
-                                            placeholder="Enter account number"
-                                            value={bankAccount}
-                                            onChange={e => setBankAccount(e.target.value)}
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                        />
-                                        <TextField
-                                            fullWidth
-                                            label="IFSC Code"
-                                            placeholder="e.g. HDFC0001234"
-                                            value={ifsc}
-                                            onChange={e => setIfsc(e.target.value.toUpperCase())}
-                                            inputProps={{ style: { textTransform: 'uppercase', fontFamily: 'monospace' } }}
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-                                        />
-                                        <Button
-                                            disabled={bankAccount.length < 8 || ifsc.length < 11 || submittingBank}
-                                            onClick={handleBankSubmit}
-                                            variant="contained"
-                                            fullWidth
-                                            sx={{
-                                                py: 1.5, borderRadius: '12px', bgcolor: '#2D5F9E', fontWeight: 800,
-                                                '&:hover': { bgcolor: '#1E3A5F' }
-                                            }}
-                                        >
-                                            {submittingBank ? <CircularProgress size={20} color="inherit" /> : 'Activate Settlement'}
-                                        </Button>
-                                    </Stack>
-                                </Paper>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="bank-done"
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                            >
-                                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: '20px', bgcolor: 'rgba(15, 157, 106, 0.04)', border: '1.5px solid rgba(15, 157, 106, 0.2)' }}>
-                                    <Avatar sx={{ width: 64, height: 64, mx: 'auto', mb: 2, bgcolor: 'rgba(15, 157, 106, 0.1)', color: '#0F9D6A' }}>
-                                        <ShieldCheckIcon sx={{ fontSize: 32 }} />
-                                    </Avatar>
-                                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#065F46', mb: 0.5 }}>Bank Linked!</Typography>
-                                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#0F9D6A', textTransform: 'uppercase', letterSpacing: 1 }}>Settlement initiated — within 24 hours</Typography>
-                                </Paper>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                        <Paper sx={{
+                            p: 4,
+                            borderRadius: '24px',
+                            background: 'linear-gradient(135deg, rgba(15, 157, 106, 0.05) 0%, rgba(15, 157, 106, 0.02) 100%)',
+                            border: '1.5px solid rgba(15, 157, 106, 0.2)',
+                            boxShadow: '0 10px 30px rgba(15, 157, 106, 0.08)',
+                            textAlign: 'center',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                            <Box sx={{ position: 'absolute', top: 0, right: 0, p: 2, opacity: 0.1 }}>
+                                <CheckCircleIcon sx={{ fontSize: 120 }} />
+                            </Box>
+
+                            <Avatar sx={{
+                                width: 64, height: 64, mx: 'auto', mb: 2,
+                                bgcolor: '#0F9D6A', color: 'white',
+                                boxShadow: '0 4px 12px rgba(15, 157, 106, 0.3)'
+                            }}>
+                                <CheckCircleIcon sx={{ fontSize: 32 }} />
+                            </Avatar>
+
+                            <Typography variant="h5" fontWeight="900" sx={{ color: '#065F46', mb: 1 }}>
+                                Claim Submitted Successfully!
+                            </Typography>
+
+                            <Stack spacing={1.5} sx={{ my: 3, textAlign: 'left', bgcolor: 'rgba(255,255,255,0.5)', p: 2.5, borderRadius: '16px', border: '1px solid rgba(15,157,106,0.1)' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#5B7692', textTransform: 'uppercase' }}>Claim Identifier</Typography>
+                                    <Typography variant="body2" fontWeight="900" sx={{ color: '#1E3A5F', fontFamily: 'monospace' }}>{formData.claimNumber}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#5B7692', textTransform: 'uppercase' }}>AI Valuation</Typography>
+                                    <Typography variant="body2" fontWeight="900" sx={{ color: '#0F9D6A' }}>₹{Math.round(amount).toLocaleString('en-IN')}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#5B7692', textTransform: 'uppercase' }}>Protocol Status</Typography>
+                                    <Chip
+                                        label="UNDER REVIEW"
+                                        size="small"
+                                        sx={{ height: 20, bgcolor: 'rgba(229, 160, 32, 0.1)', color: '#92400E', fontWeight: 900, fontSize: '0.6rem' }}
+                                    />
+                                </Box>
+                            </Stack>
+
+                            <Typography variant="body2" sx={{ color: '#5B7692', fontStyle: 'italic', mb: 0 }}>
+                                "Our officer node will reconstruct and review your claim within 24-48 hours."
+                            </Typography>
+                        </Paper>
+                    </motion.div>
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 5 }}>
                     <Paper sx={{ p: 3, borderRadius: '20px', border: '1px solid #CBD8EA', boxShadow: '0 4px 12px rgba(30, 58, 95, 0.05)' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1.2, mb: 3, display: 'block' }}>Claim Timeline</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#8DA5BE', textTransform: 'uppercase', letterSpacing: 1.2, mb: 3, display: 'block' }}>Sync Timeline</Typography>
                         <Stack spacing={0}>
                             {timeline.map((item, i) => (
                                 <Box key={i} sx={{ display: 'flex', gap: 2, position: 'relative' }}>
@@ -277,7 +230,6 @@ export default function ConfirmationStep({ formData }: Props) {
                 </Grid>
             </Grid>
 
-            {/* Actions */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
                 <Button
                     fullWidth
@@ -286,7 +238,7 @@ export default function ConfirmationStep({ formData }: Props) {
                     onClick={handleDownloadReport}
                     sx={{ py: 1.5, borderRadius: '12px', borderColor: '#CBD8EA', color: '#5B7692', fontWeight: 700, '&:hover': { borderColor: '#2D5F9E', color: '#2D5F9E' } }}
                 >
-                    Download Report
+                    IRDA Evidence Pack
                 </Button>
                 <Button
                     fullWidth
@@ -294,21 +246,21 @@ export default function ConfirmationStep({ formData }: Props) {
                     startIcon={<WhatsAppIcon />}
                     sx={{ py: 1.5, borderRadius: '12px', borderColor: '#CBD8EA', color: '#5B7692', fontWeight: 700, '&:hover': { borderColor: '#25D366', color: '#25D366' } }}
                 >
-                    WhatsApp Update
+                    WhatsApp Report
                 </Button>
             </Stack>
             <Button
                 fullWidth
                 variant="contained"
                 endIcon={<ArrowRightIcon />}
-                onClick={() => router.push('/claim/track')}
+                onClick={() => router.push('/dashboard')}
                 sx={{
                     py: 2, borderRadius: '12px', bgcolor: '#1E3A5F', fontWeight: 800, fontSize: '1rem',
                     boxShadow: '0 6px 20px rgba(30, 58, 95, 0.2)',
                     '&:hover': { bgcolor: '#152D4A', transform: 'translateY(-2px)' }
                 }}
             >
-                Track Your Claim
+                Return to Command Center
             </Button>
         </Box>
     );
