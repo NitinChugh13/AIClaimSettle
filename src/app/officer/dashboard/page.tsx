@@ -61,59 +61,86 @@ export default function OfficerDashboardPage() {
     const [hourlyData, setHourlyData] = useState<any[]>([]);
 
     const fetchData = async () => {
+        console.log('[Officer Dashboard] fetchData initiated');
         try {
-            const res = await fetch('/api/claims');
-            const data = await res.json();
-
-            const pending = data.filter((c: any) => c.status === 'pending').length;
-            const approved = data.filter((c: any) => c.status === 'approved').length;
-            const total = data.length;
-            const flagged = data.filter((c: any) => c.flags && c.flags.length > 0).length;
-
-            setStats([
-                { label: 'Pending Review', value: pending.toString(), icon: ClockIcon, color: '#E5A020', bg: 'rgba(229, 160, 32, 0.08)' },
-                { label: 'Approved Today', value: approved.toString(), icon: CheckCircleIcon, color: '#0F9D6A', bg: 'rgba(15, 157, 106, 0.08)' },
-                { label: "Total Volume", value: total.toString(), icon: TrendingUpIcon, color: '#2D5F9E', bg: 'rgba(45, 95, 158, 0.08)' },
-                { label: 'Risk Flags', value: flagged.toString(), icon: ShieldAlertIcon, color: '#D64045', bg: 'rgba(214, 64, 69, 0.08)' },
+            console.log('[Officer Dashboard] Starting parallel fetch for stats and claims...');
+            const [statsRes, claimsRes] = await Promise.all([
+                fetch('/api/officer/stats', { credentials: 'include' }),
+                fetch('/api/officer/claims', { credentials: 'include' })
             ]);
 
-            const latest = data
-                .filter((c: any) => c.status === 'pending')
-                .slice(0, 4)
-                .map((c: any) => ({
-                    id: c.id,
-                    vehicle: c.vehicleModel,
-                    amount: c.totalAmount,
-                    confidence: c.confidenceScore,
-                    flag: c.flags?.[0] || 'Neutral',
-                    time: formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
-                }));
-            setQueueClaims(latest);
+            console.log('[Officer Dashboard] Fetch complete. Status codes:', statsRes.status, claimsRes.status);
 
-            const hours: Record<string, number> = {};
-            data.forEach((c: any) => {
-                const hour = new Date(c.createdAt).getHours();
-                const display = hour === 0 ? '12am' : hour < 12 ? `${hour}am` : hour === 12 ? '12pm' : `${hour - 12}pm`;
-                hours[display] = (hours[display] || 0) + 1;
-            });
-            const formattedHourly = Object.entries(hours).map(([hour, count]) => ({ hour, claims: count }));
-            setHourlyData(formattedHourly.length > 0 ? formattedHourly : [
-                { hour: '9am', claims: 2 }, { hour: '12pm', claims: 5 }, { hour: '3pm', claims: 3 }, { hour: '6pm', claims: 8 }
-            ]);
+            const statsData = await statsRes.json();
+            const claimsData = await claimsRes.json();
+
+            console.log('[Officer Dashboard] Stats API Response:', statsData);
+            console.log('[Officer Dashboard] Claims API Response:', claimsData);
+
+            if (statsData.success && (claimsData.success || Array.isArray(claimsData))) {
+                const s = statsData.stats;
+                const claimsArray = Array.isArray(claimsData) ? claimsData : (claimsData.claims || claimsData.data || []);
+
+                console.log('[Officer Dashboard] Updating state with data. Claims count:', claimsArray.length);
+
+                setStats([
+                    { label: 'Pending Review', value: s.pending_review.toString(), icon: ClockIcon, color: '#E5A020', bg: 'rgba(229, 160, 32, 0.08)' },
+                    { label: 'Approved Today', value: s.approved_today.toString(), icon: CheckCircleIcon, color: '#0F9D6A', bg: 'rgba(15, 157, 106, 0.08)' },
+                    { label: "Total Approved", value: `₹${Math.round(s.total_amount_approved / 1000)}k`, icon: TrendingUpIcon, color: '#2D5F9E', bg: 'rgba(45, 95, 158, 0.08)' },
+                    { label: 'Surveyor Active', value: s.surveyor_assigned.toString(), icon: ShieldAlertIcon, color: '#D64045', bg: 'rgba(214, 64, 69, 0.08)' },
+                ]);
+
+                // Filter for priority queue (show ALL for now to verify data)
+                console.log('[Officer Dashboard] All available statuses:', claimsArray.map((c: any) => c.status));
+
+                const latest = claimsArray
+                    .slice(0, 5) // Show top 5 instead of 4
+                    .map((c: any) => ({
+                        id: c.id,
+                        vehicle: c.claimant_name + ' - ' + (c.vehicle || 'Unknown'),
+                        amount: c.ai_approved_amount || c.estimated_repair_cost || 0,
+                        confidence: c.ai_confidence_score || 0,
+                        flag: (c.ai_flags && c.ai_flags.length > 0) ? 'Flagged' : 'Clean',
+                        time: c.created_at ? formatDistanceToNow(new Date(c.created_at), { addSuffix: true }) : 'Just now'
+                    }));
+                setQueueClaims(latest);
+
+                const hours: Record<string, number> = {};
+                claimsArray.forEach((c: any) => {
+                    const hour = new Date(c.created_at).getHours();
+                    const display = hour === 0 ? '12am' : hour < 12 ? `${hour}am` : hour === 12 ? '12pm' : `${hour - 12}pm`;
+                    hours[display] = (hours[display] || 0) + 1;
+                });
+                const formattedHourly = Object.entries(hours).map(([hour, count]) => ({ hour, claims: count }));
+                setHourlyData(formattedHourly.length > 0 ? formattedHourly : [
+                    { hour: '9am', claims: 2 }, { hour: '12pm', claims: 5 }, { hour: '3pm', claims: 3 }, { hour: '6pm', claims: 8 }
+                ]);
+            } else {
+                console.warn('[Officer Dashboard] API returned success:false');
+            }
 
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching dashboard data:', error);
+            console.error('[Officer Dashboard] FATAL ERROR during fetchData:', error);
             setLoading(false);
         }
     };
 
     useEffect(() => {
+        console.log('[Officer Dashboard] Component mounted, triggering initial fetch');
         fetchData();
+
         const channel = supabase.channel('dashboard-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'claims' }, () => fetchData())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'claims' }, (payload) => {
+                console.log('[Officer Dashboard] Real-time update received:', payload);
+                fetchData();
+            })
             .subscribe();
-        return () => { supabase.removeChannel(channel); };
+
+        return () => {
+            console.log('[Officer Dashboard] Component unmounting, cleaning up channel');
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     if (loading) {
@@ -256,8 +283,8 @@ export default function OfficerDashboardPage() {
                             </Stack>
                         </Box>
 
-                        <Box sx={{ height: 400, width: '100%' }}>
-                            <ResponsiveContainer>
+                        <div style={{ width: '100%', height: 350, minHeight: 350 }}>
+                            <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={hourlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F6FF" />
                                     <XAxis
@@ -290,7 +317,7 @@ export default function OfficerDashboardPage() {
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
-                        </Box>
+                        </div>
                     </Paper>
                 </Grid>
 
@@ -399,4 +426,3 @@ export default function OfficerDashboardPage() {
         </Box>
     );
 }
-

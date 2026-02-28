@@ -57,14 +57,26 @@ interface DamageItem {
 
 interface TrackResult {
     id: string
-    status: 'pending' | 'approved' | 'rejected' | 'escalated' | 'settled'
-    vehicleModel: string
-    vehicleReg: string
-    createdAt: string
-    totalAmount: number
-    incidentType: string
-    incidentDate: string
-    damageItems: DamageItem[]
+    claim_number: string
+    status: string
+    created_at: string
+    incident_type: string
+    incident_date: string
+    estimated_repair_cost: number
+    ai_approved_amount: number
+    final_approved_amount: number
+    ai_damaged_parts: string[]
+    ai_reasoning: string
+    ai_confidence: string | number
+    claim_documents: any[]
+    policies: {
+        vehicle_make: string
+        vehicle_model: string
+        vehicle_year: string
+        vehicle_number: string
+        policy_number: string
+    }
+    surveyor_assignments: any[]
 }
 
 const containerVariants = {
@@ -102,13 +114,27 @@ function TrackClaimContent() {
         setLoading(true)
         setError('')
         try {
-            const res = await fetch(`/api/claims/${encodeURIComponent(idToSearch)}`)
+            console.log('[Track Page] Searching for:', idToSearch);
+
+            // Determine if it's a UUID or a Claim Number
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idToSearch);
+            const searchUrl = isUUID
+                ? `/api/claims/${encodeURIComponent(idToSearch)}`
+                : `/api/claims/search?claim_number=${encodeURIComponent(idToSearch)}`;
+
+            const res = await fetch(searchUrl)
             if (!res.ok) {
-                if (res.status === 404) throw new Error('Claim ID not found in our system.')
+                if (res.status === 404) throw new Error('Claim not found in our system.')
                 throw new Error('Error connecting to settlement service.')
             }
             const data = await res.json()
-            setResult(data)
+            console.log('[Track Page] Received data:', data);
+
+            if (data.success && data.claim) {
+                setResult(data.claim)
+            } else {
+                throw new Error('Claim not found or invalid response.')
+            }
         } catch (err: any) {
             setError(err.message || 'An error occurred.')
             setResult(null)
@@ -123,31 +149,53 @@ function TrackClaimContent() {
     }
 
     const getStatusInfo = (status: string) => {
-        switch (status) {
-            case 'approved': return { color: '#0F9D6A', bg: 'rgba(15, 157, 106, 0.08)', icon: <CheckCircleIcon sx={{ fontSize: 24, color: '#0F9D6A' }} />, label: 'Approved' }
-            case 'pending': return { color: '#E5A020', bg: 'rgba(229, 160, 32, 0.08)', icon: <FlashOnIcon sx={{ fontSize: 24, color: '#E5A020' }} />, label: 'AI Review' }
-            case 'rejected': return { color: '#D64045', bg: 'rgba(214, 64, 69, 0.08)', icon: <AlertCircleIcon sx={{ fontSize: 24, color: '#D64045' }} />, label: 'Rejected' }
-            case 'escalated': return { color: '#6B5FD6', bg: 'rgba(107, 95, 214, 0.08)', icon: <AlertTriangleIcon sx={{ fontSize: 24, color: '#6B5FD6' }} />, label: 'Officer Review' }
-            case 'settled': return { color: '#2D5F9E', bg: 'rgba(45, 95, 158, 0.08)', icon: <BanknoteIcon sx={{ fontSize: 24, color: '#2D5F9E' }} />, label: 'Settled' }
-            default: return { color: '#8DA5BE', bg: 'rgba(138, 165, 190, 0.08)', icon: <ClockIcon sx={{ fontSize: 24, color: '#8DA5BE' }} />, label: 'Processing' }
+        const lowerStatus = status?.toLowerCase();
+        switch (lowerStatus) {
+            case 'approved':
+                return { color: '#0F9D6A', bg: 'rgba(15, 157, 106, 0.08)', icon: <CheckCircleIcon sx={{ fontSize: 24, color: '#0F9D6A' }} />, label: 'Approved' }
+            case 'pending':
+            case 'ai_complete':
+            case 'ai_reviewed':
+                return { color: '#E5A020', bg: 'rgba(229, 160, 32, 0.08)', icon: <FlashOnIcon sx={{ fontSize: 24, color: '#E5A020' }} />, label: 'AI Review Complete' }
+            case 'rejected':
+                return { color: '#D64045', bg: 'rgba(214, 64, 69, 0.08)', icon: <AlertCircleIcon sx={{ fontSize: 24, color: '#D64045' }} />, label: 'Rejected' }
+            case 'officer_review':
+                return { color: '#6B5FD6', bg: 'rgba(107, 95, 214, 0.08)', icon: <AlertTriangleIcon sx={{ fontSize: 24, color: '#6B5FD6' }} />, label: 'Officer Review' }
+            case 'surveyor_assigned':
+                return { color: '#2D5F9E', bg: 'rgba(45, 95, 158, 0.08)', icon: <ShieldIcon sx={{ fontSize: 24, color: '#2D5F9E' }} />, label: 'Surveyor Appointed' }
+            case 'info_requested':
+                return { color: '#F97316', bg: 'rgba(249, 115, 22, 0.08)', icon: <AlertCircleIcon sx={{ fontSize: 24, color: '#F97316' }} />, label: 'Action Required' }
+            case 'settled':
+                return { color: '#2D5F9E', bg: 'rgba(45, 95, 158, 0.08)', icon: <BanknoteIcon sx={{ fontSize: 24, color: '#2D5F9E' }} />, label: 'Settled' }
+            default:
+                return { color: '#8DA5BE', bg: 'rgba(138, 165, 190, 0.08)', icon: <ClockIcon sx={{ fontSize: 24, color: '#8DA5BE' }} />, label: status?.replace('_', ' ').toUpperCase() || 'Processing' }
         }
     }
 
     const buildTimeline = (claim: TrackResult) => {
         const _status = claim.status
         const timeline = [
-            { done: true, label: 'Claim Received', time: format(new Date(claim.createdAt), 'dd MMM, HH:mm'), desc: 'Initial report ingested and registered.' },
-            { done: true, label: 'AI Photo Analysis', time: format(new Date(claim.createdAt), 'dd MMM, HH:mm'), desc: 'AI successfully extracted damage vectors from submitted photos.' },
-            { done: _status !== 'pending', active: _status === 'pending', label: 'Compliance Check', time: _status === 'pending' ? 'Verification Ongoing' : 'Verified', desc: 'Policy limits and KYC cross-check completed.' },
+            { done: true, label: 'Claim Filed', time: format(new Date(claim.created_at), 'dd MMM, HH:mm'), desc: 'Initial report ingested and registered.' },
+            { done: true, label: 'AI Photo Analysis', time: format(new Date(claim.created_at), 'dd MMM, HH:mm'), desc: 'AI successfully extracted damage vectors from submitted photos.' },
+            {
+                done: !['pending', 'ai_reviewed', 'submitted', 'ai_processing'].includes(_status),
+                active: ['pending', 'ai_reviewed', 'submitted', 'ai_processing'].includes(_status),
+                label: 'AI Verification',
+                time: ['pending', 'ai_reviewed', 'submitted', 'ai_processing'].includes(_status) ? 'Active' : 'Completed',
+                desc: 'Valuation and initial risk check complete.'
+            },
         ]
 
         if (_status === 'rejected') {
             timeline.push({ done: true, active: false, label: 'Claim Rejected', time: 'Terminated', desc: 'Claim does not meet eligibility criteria.' })
-        } else if (_status === 'escalated') {
-            timeline.push({ done: false, active: true, label: 'Officer Review', time: 'Awaiting Action', desc: 'Assigned to a physical damage assessor.' })
+        } else if (_status === 'officer_review') {
+            timeline.push({ done: false, active: true, label: 'Officer Review', time: 'In Progress', desc: 'Assigned to a digital validator for final check.' })
+        } else if (_status === 'surveyor_assigned') {
+            timeline.push({ done: true, label: 'Officer Review', time: 'Verified', desc: 'Digital check complete.' })
+            timeline.push({ done: false, active: true, label: 'Physical Inspection', time: 'Surveyor Appointed', desc: 'A field surveyor has been assigned to verify damage.' })
         } else if (_status === 'approved' || _status === 'settled') {
             timeline.push({ done: true, active: false, label: 'Final Approval', time: 'Success', desc: 'Funds sanctioned for electronic release.' })
-            timeline.push({ done: _status === 'settled', active: _status === 'approved', label: 'Payment Processing', time: _status === 'settled' ? 'Settled' : 'In Progress', desc: 'Transaction broadcast to bank.' })
+            timeline.push({ done: _status === 'settled', active: _status === 'approved', label: 'Payment Processing', time: _status === 'settled' ? 'Settled' : 'Scheduled', desc: 'Transaction broadcast to node.' })
         }
         return timeline
     }
@@ -266,31 +314,35 @@ function TrackClaimContent() {
                                                     </Typography>
                                                 </Box>
                                             </Box>
-                                            <Chip label={`ID: ${result.id.slice(0, 12).toUpperCase()}`} sx={{ bgcolor: '#F0F6FF', color: '#4A6080', fontWeight: 700, borderRadius: '8px' }} />
+                                            <Chip label={result.claim_number || `ID: ${result.id.slice(0, 12).toUpperCase()}`} sx={{ bgcolor: '#F0F6FF', color: '#2D5F9E', fontWeight: 900, borderRadius: '8px', fontFamily: 'monospace' }} />
                                         </Box>
 
                                         <Grid container sx={{ borderBottom: '1px solid #CBD8EA' }}>
                                             <Grid size={{ xs: 12, sm: 6 }} sx={{ p: 4, borderRight: { sm: '1px solid #CBD8EA' }, borderBottom: { xs: '1px solid #CBD8EA', sm: 'none' } }}>
                                                 <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 700, textTransform: 'uppercase' }}>Vehicle</Typography>
-                                                <Typography variant="h6" fontWeight="800" sx={{ color: '#1A2B3C', mt: 1 }}>{result.vehicleModel}</Typography>
-                                                <Typography variant="body2" sx={{ color: '#2D5F9E', fontWeight: 700, letterSpacing: 1 }}>{result.vehicleReg}</Typography>
+                                                <Typography variant="h6" fontWeight="800" sx={{ color: '#1A2B3C', mt: 1 }}>
+                                                    {result.policies?.vehicle_make} {result.policies?.vehicle_model}
+                                                </Typography>
+                                                <Typography variant="body2" sx={{ color: '#2D5F9E', fontWeight: 700, letterSpacing: 1 }}>
+                                                    {result.policies?.vehicle_number}
+                                                </Typography>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6 }} sx={{ p: 4 }}>
                                                 <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 700, textTransform: 'uppercase' }}>Claim Date</Typography>
-                                                <Typography variant="h6" fontWeight="800" sx={{ color: '#1A2B3C', mt: 1 }}>{format(new Date(result.createdAt), 'dd MMMM yyyy')}</Typography>
-                                                <Typography variant="body2" sx={{ color: '#4A6080' }}>Filed at {format(new Date(result.createdAt), 'HH:mm')}</Typography>
+                                                <Typography variant="h6" fontWeight="800" sx={{ color: '#1A2B3C', mt: 1 }}>{format(new Date(result.created_at), 'dd MMMM yyyy')}</Typography>
+                                                <Typography variant="body2" sx={{ color: '#4A6080' }}>Filed at {format(new Date(result.created_at), 'HH:mm')}</Typography>
                                             </Grid>
                                         </Grid>
 
                                         <Grid container>
                                             <Grid size={{ xs: 12, sm: 6 }} sx={{ p: 4, borderRight: { sm: '1px solid #CBD8EA' }, borderBottom: { xs: '1px solid #CBD8EA', sm: 'none' } }}>
                                                 <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 700, textTransform: 'uppercase' }}>Incident Type</Typography>
-                                                <Typography variant="h6" fontWeight="800" sx={{ color: '#1A2B3C', mt: 1, textTransform: 'capitalize' }}>{result.incidentType}</Typography>
-                                                <Typography variant="body2" sx={{ color: '#4A6080' }}>{result.incidentDate}</Typography>
+                                                <Typography variant="h6" fontWeight="800" sx={{ color: '#1A2B3C', mt: 1, textTransform: 'capitalize' }}>{result.incident_type}</Typography>
+                                                <Typography variant="body2" sx={{ color: '#4A6080' }}>{result.incident_date}</Typography>
                                             </Grid>
                                             <Grid size={{ xs: 12, sm: 6 }} sx={{ p: 4, bgcolor: 'rgba(45, 95, 158, 0.02)' }}>
-                                                <Typography variant="caption" sx={{ color: '#2D5F9E', fontWeight: 700, textTransform: 'uppercase' }}>Assessed Amount</Typography>
-                                                <Typography variant="h4" fontWeight="900" sx={{ color: '#1E3A5F', mt: 0.5 }}>₹{result.totalAmount.toLocaleString('en-IN')}</Typography>
+                                                <Typography variant="caption" sx={{ color: '#2D5F9E', fontWeight: 700, textTransform: 'uppercase' }}>Final Approved Amount</Typography>
+                                                <Typography variant="h4" fontWeight="900" sx={{ color: '#1E3A5F', mt: 0.5 }}>₹{(result.final_approved_amount || result.ai_approved_amount || result.estimated_repair_cost || 0).toLocaleString('en-IN')}</Typography>
                                                 {result.status === 'pending' && (
                                                     <Chip
                                                         icon={<FlashOnIcon sx={{ fontSize: '14px !important' }} className="pulse-icon" />}
@@ -303,48 +355,84 @@ function TrackClaimContent() {
                                         </Grid>
                                     </Card>
 
+                                    {/* AI Analysis Summary */}
+                                    <Grid container spacing={3} sx={{ mt: 1 }}>
+                                        <Grid size={{ xs: 12, sm: 6 }}>
+                                            <Card sx={{ borderRadius: '20px', bgcolor: 'rgba(229, 160, 32, 0.04)', border: '1px solid rgba(229, 160, 32, 0.1)', height: '100%' }}>
+                                                <CardContent sx={{ p: 3 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                                                        <FlashOnIcon sx={{ color: '#E5A020', fontSize: 20 }} />
+                                                        <Typography variant="subtitle2" fontWeight="800" color="#B27B13">AI CONFIDENCE</Typography>
+                                                    </Box>
+                                                    <Typography variant="h4" fontWeight="900" color="#1A2B3C">
+                                                        {result.ai_confidence ? `${result.ai_confidence}%` : 'N/A'}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="#8DA5BE">Nova-1 Stability Score</Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, sm: 6 }}>
+                                            <Card sx={{ borderRadius: '20px', bgcolor: 'rgba(15, 157, 106, 0.04)', border: '1px solid rgba(15, 157, 106, 0.1)', height: '100%' }}>
+                                                <CardContent sx={{ p: 3 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                                                        <CheckCircleIcon sx={{ color: '#0F9D6A', fontSize: 20 }} />
+                                                        <Typography variant="subtitle2" fontWeight="800" color="#0F9D6A">AI APPROVED</Typography>
+                                                    </Box>
+                                                    <Typography variant="h4" fontWeight="900" color="#1A2B3C">
+                                                        ₹{(result.ai_approved_amount || 0).toLocaleString('en-IN')}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="#8DA5BE">Automated sanction amount</Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    </Grid>
+
                                     {/* Damage Items */}
-                                    <Card sx={{ mt: 4, borderRadius: '24px', boxShadow: '0 4px 16px rgba(30, 58, 95, 0.06)' }}>
+                                    <Card sx={{ mt: 3, borderRadius: '24px', boxShadow: '0 4px 16px rgba(30, 58, 95, 0.06)' }}>
                                         <Box sx={{ p: 3, px: 4, borderBottom: '1px solid #CBD8EA', display: 'flex', alignItems: 'center', gap: 2 }}>
                                             <Avatar sx={{ bgcolor: 'rgba(45, 95, 158, 0.08)', color: '#2D5F9E', borderRadius: '12px' }}>
                                                 <ShieldIcon />
                                             </Avatar>
                                             <Box>
                                                 <Typography variant="subtitle1" fontWeight="800">Damage Assessment</Typography>
-                                                <Typography variant="caption" sx={{ color: '#8DA5BE' }}>AI-identified damage items</Typography>
+                                                <Typography variant="caption" sx={{ color: '#8DA5BE' }}>AI-identified damage vectors</Typography>
                                             </Box>
                                         </Box>
-                                        <CardContent sx={{ p: 0 }}>
-                                            {result.damageItems.length === 0 ? (
-                                                <Box sx={{ p: 8, textAlign: 'center', opacity: 0.5 }}>
-                                                    <SearchIcon sx={{ fontSize: 48, color: '#CBD8EA', mb: 2 }} />
-                                                    <Typography variant="body2">Awaiting AI analysis results...</Typography>
+                                        <CardContent sx={{ p: 4 }}>
+                                            {result.ai_reasoning && (
+                                                <Box sx={{ mb: 4, p: 2.5, borderRadius: '16px', bgcolor: '#F8FAFF', border: '1px dashed #CBD8EA' }}>
+                                                    <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 800, textTransform: 'uppercase', mb: 1, display: 'block' }}>
+                                                        AI Reasoning & Logic
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ color: '#4A6080', lineHeight: 1.6, fontStyle: 'italic' }}>
+                                                        "{result.ai_reasoning}"
+                                                    </Typography>
+                                                </Box>
+                                            )}
+
+                                            <Typography variant="subtitle2" fontWeight="800" sx={{ color: '#1A2B3C', mb: 2 }}>IDENTIFIED DAMAGED PARTS</Typography>
+
+                                            {!result.ai_damaged_parts || result.ai_damaged_parts.length === 0 ? (
+                                                <Box sx={{ py: 4, textAlign: 'center', opacity: 0.5 }}>
+                                                    <Typography variant="body2">No damaged parts detected by AI.</Typography>
                                                 </Box>
                                             ) : (
-                                                <Box>
-                                                    {result.damageItems.map((item, idx) => (
-                                                        <Box
-                                                            key={item.id}
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                                                    {result.ai_damaged_parts.map((part: string, idx: number) => (
+                                                        <Chip
+                                                            key={idx}
+                                                            icon={<FlashOnIcon sx={{ fontSize: '16px !important', color: '#E5A020 !important' }} />}
+                                                            label={part}
                                                             sx={{
-                                                                p: 2.5, px: 4,
-                                                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                                                bgcolor: idx % 2 === 0 ? '#FAFCFF' : 'white',
-                                                                borderBottom: idx < result.damageItems.length - 1 ? '1px solid #F0F6FF' : 'none'
+                                                                borderRadius: '10px',
+                                                                fontWeight: 700,
+                                                                bgcolor: 'white',
+                                                                border: '1px solid #CBD8EA',
+                                                                px: 1,
+                                                                py: 2.5,
+                                                                '& .MuiChip-label': { px: 2 }
                                                             }}
-                                                        >
-                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                                                <FlashOnIcon sx={{ color: '#8DA5BE', fontSize: 20 }} />
-                                                                <Box>
-                                                                    <Typography variant="body1" fontWeight="700">{item.partName}</Typography>
-                                                                    <Typography variant="caption" sx={{ color: '#8DA5BE', textTransform: 'uppercase', fontWeight: 600 }}>
-                                                                        {item.severity} · {item.action}
-                                                                    </Typography>
-                                                                </Box>
-                                                            </Box>
-                                                            <Typography variant="h6" fontWeight="800" sx={{ color: '#2D5F9E' }}>
-                                                                ₹{item.netSubtotal.toLocaleString('en-IN')}
-                                                            </Typography>
-                                                        </Box>
+                                                        />
                                                     ))}
                                                 </Box>
                                             )}

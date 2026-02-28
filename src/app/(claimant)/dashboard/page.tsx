@@ -43,12 +43,16 @@ import { useAuth } from '@/context/AuthContext'
 
 interface ClaimRecord {
     id: string
+    claim_number: string
     policyNumber: string
     vehicleReg: string
     incidentType: string
     incidentDate: string
+    estimated_repair_cost: number
+    ai_approved_amount: number
+    final_approved_amount: number
     totalAmount: number
-    status: 'pending' | 'approved' | 'rejected' | 'escalated' | 'settled'
+    status: string
     createdAt: string
 }
 
@@ -63,7 +67,7 @@ const containerVariants = {
 }
 
 const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     show: { opacity: 1, y: 0 }
 }
 
@@ -120,6 +124,7 @@ export default function UserDashboard() {
             const res = await fetch(`/api/claims/history?policy=${encodeURIComponent(policyNum)}`)
             if (!res.ok) throw new Error('Failed to fetch history')
             const data = await res.json()
+            console.log('[Claim History Raw]:', data);
             setClaims(data)
         } catch (err: any) {
             console.error('Search failed:', err)
@@ -135,18 +140,29 @@ export default function UserDashboard() {
     }
 
     const getStatusProps = (status: string) => {
-        switch (status) {
-            case 'approved': return { color: '#0F9D6A', label: 'Approved', icon: <CheckCircleIcon /> }
-            case 'pending': return { color: '#E5A020', label: 'Pending', icon: <ClockIcon /> }
+        const lowerStatus = status?.toLowerCase();
+        switch (lowerStatus) {
+            case 'approved':
+            case 'ai_complete':
+            case 'ai_reviewed':
+                return { color: '#0F9D6A', label: 'Approved', icon: <CheckCircleIcon /> }
+            case 'pending':
+            case 'submitted':
+            case 'ai_processing':
+                return { color: '#E5A020', label: 'Pending', icon: <ClockIcon /> }
             case 'rejected': return { color: '#D64045', label: 'Rejected', icon: <AlertCircleIcon /> }
             case 'escalated': return { color: '#6B5FD6', label: 'Escalated', icon: <AlertCircleIcon /> }
             case 'settled': return { color: '#2D5F9E', label: 'Settled', icon: <CheckCircleIcon /> }
-            default: return { color: '#8DA5BE', label: status, icon: <FileTextIcon /> }
+            default: return { color: '#8DA5BE', label: status?.replace('_', ' ').toUpperCase(), icon: <FileTextIcon /> }
         }
     }
 
-    const totalSettled = claims.filter(c => c.status === 'settled').reduce((acc, curr) => acc + curr.totalAmount, 0)
-    const pendingClaims = claims.filter(c => c.status === 'pending').length
+    // Settled calculation: SUM of final_approved_amount for 'approved' status
+    const totalSettled = claims
+        .filter(c => c.status === 'approved' || c.status === 'settled')
+        .reduce((acc, curr) => acc + (curr.final_approved_amount || curr.ai_approved_amount || 0), 0)
+
+    const pendingClaims = claims.filter(c => ['submitted', 'ai_processing', 'pending'].includes(c.status)).length
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: '#F0F6FF' }} className="page-gradient-static">
@@ -164,14 +180,14 @@ export default function UserDashboard() {
                                         👋 {user.full_name}
                                     </Box>
                                 )}
-                                <Button
-                                    component={Link}
-                                    href="/claim/track"
-                                    variant="text"
-                                    sx={{ color: '#4A6080', fontWeight: 600, display: { xs: 'none', sm: 'flex' } }}
-                                >
-                                    Track View
-                                </Button>
+                                <Link href="/claim/track" passHref style={{ textDecoration: 'none' }}>
+                                    <Button
+                                        variant="text"
+                                        sx={{ color: '#4A6080', fontWeight: 600, display: { xs: 'none', sm: 'flex' } }}
+                                    >
+                                        Track View
+                                    </Button>
+                                </Link>
                                 <Button
                                     onClick={() => logout()}
                                     sx={{ color: '#D64045', fontWeight: 600, display: { xs: 'none', sm: 'flex' } }}
@@ -453,6 +469,8 @@ export default function UserDashboard() {
                                             <motion.div
                                                 key={claim.id}
                                                 variants={itemVariants}
+                                                initial="hidden"
+                                                animate="show"
                                             >
                                                 <Card sx={{
                                                     borderRadius: '16px',
@@ -464,11 +482,11 @@ export default function UserDashboard() {
                                                         boxShadow: '0 8px 24px rgba(30, 58, 95, 0.08)'
                                                     }
                                                 }}>
-                                                    <Grid container alignItems="center" spacing={3}>
-                                                        <Grid size={{ xs: 12, sm: 3 }}>
+                                                    <Grid container alignItems="center" spacing={2}>
+                                                        <Grid size={{ xs: 12, sm: 2 }}>
                                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', fontWeight: 700 }}>
-                                                                    ID: #{claim.id.split('-')[0].toUpperCase()}
+                                                                <Typography variant="caption" sx={{ color: '#2D5F9E', fontWeight: 900, fontFamily: 'monospace' }}>
+                                                                    {claim.claim_number || `#{claim.id.split('-')[0].toUpperCase()}`}
                                                                 </Typography>
                                                                 <Chip
                                                                     icon={status.icon}
@@ -477,48 +495,51 @@ export default function UserDashboard() {
                                                                     sx={{
                                                                         bgcolor: `${status.color}11`,
                                                                         color: status.color,
-                                                                        borderColor: `${status.color}33`,
-                                                                        border: '1px solid',
-                                                                        fontWeight: 700,
-                                                                        px: 1,
+                                                                        fontWeight: 800,
+                                                                        fontSize: '10px',
+                                                                        height: 22,
                                                                         width: 'fit-content'
                                                                     }}
                                                                 />
                                                             </Box>
                                                         </Grid>
-                                                        <Grid size={{ xs: 6, sm: 2.5 }}>
-                                                            <Box>
-                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block' }}>Vehicle</Typography>
-                                                                <Typography variant="body2" fontWeight="700" sx={{ color: '#1A2B3C' }}>{claim.vehicleReg}</Typography>
-                                                            </Box>
+                                                        <Grid size={{ xs: 4, sm: 1.5 }}>
+                                                            <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block', fontWeight: 700 }}>Type</Typography>
+                                                            <Typography variant="body2" fontWeight="700" sx={{ color: '#1A2B3C' }}>{claim.incidentType}</Typography>
                                                         </Grid>
-                                                        <Grid size={{ xs: 6, sm: 2.5 }}>
-                                                            <Box>
-                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block' }}>Incident</Typography>
-                                                                <Typography variant="body2" fontWeight="700" sx={{ color: '#1A2B3C' }}>{claim.incidentType}</Typography>
-                                                            </Box>
+                                                        <Grid size={{ xs: 4, sm: 1.5 }}>
+                                                            <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block', fontWeight: 700 }}>Date</Typography>
+                                                            <Typography variant="body2" fontWeight="700" sx={{ color: '#1A2B3C' }}>{claim.incidentDate}</Typography>
                                                         </Grid>
-                                                        <Grid size={{ xs: 6, sm: 2 }}>
-                                                            <Box>
-                                                                <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block' }}>Amount</Typography>
-                                                                <Typography variant="body1" fontWeight="900" sx={{ color: '#0F9D6A' }}>₹{claim.totalAmount.toLocaleString('en-IN')}</Typography>
-                                                            </Box>
+                                                        <Grid size={{ xs: 4, sm: 1.5 }}>
+                                                            <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block', fontWeight: 700 }}>Claimed</Typography>
+                                                            <Typography variant="body2" fontWeight="700" sx={{ color: '#1A2B3C' }}>₹{claim.estimated_repair_cost?.toLocaleString('en-IN')}</Typography>
+                                                        </Grid>
+                                                        <Grid size={{ xs: 4, sm: 1.5 }}>
+                                                            <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block', fontWeight: 700 }}>AI Audit</Typography>
+                                                            <Typography variant="body2" fontWeight="700" sx={{ color: '#2D5F9E' }}>₹{claim.ai_approved_amount?.toLocaleString('en-IN')}</Typography>
+                                                        </Grid>
+                                                        <Grid size={{ xs: 4, sm: 2 }}>
+                                                            <Typography variant="caption" sx={{ color: '#8DA5BE', display: 'block', fontWeight: 700 }}>Final Approved</Typography>
+                                                            <Typography variant="body1" fontWeight="900" sx={{ color: '#0F9D6A' }}>₹{(claim.final_approved_amount || claim.ai_approved_amount || 0).toLocaleString('en-IN')}</Typography>
                                                         </Grid>
                                                         <Grid size={{ xs: 12, sm: 2 }} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                                                             <Button
                                                                 component={Link}
-                                                                href={`/claim/track?id=${claim.id}`}
+                                                                href={`/claim/track?id=${claim.claim_number || claim.id}`}
                                                                 variant="outlined"
-                                                                size="medium"
+                                                                size="small"
                                                                 endIcon={<ArrowRightIcon />}
                                                                 sx={{
-                                                                    borderRadius: '12px',
-                                                                    px: 3,
+                                                                    borderRadius: '10px',
+                                                                    fontWeight: 700,
+                                                                    textTransform: 'none',
+                                                                    px: 2,
                                                                     bgcolor: 'rgba(45, 95, 158, 0.04)',
                                                                     '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.08)' }
                                                                 }}
                                                             >
-                                                                Track
+                                                                View Details
                                                             </Button>
                                                         </Grid>
                                                     </Grid>

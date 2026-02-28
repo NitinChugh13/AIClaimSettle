@@ -184,24 +184,8 @@ export default function NewClaimPage() {
                             {activeStep === 4 && (
                                 <ResultsStep
                                     formData={formData}
-                                    onSubmit={async () => {
-                                        try {
-                                            const res = await fetch('/api/claims', {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({
-                                                    formData,
-                                                    analysis: formData.aiAnalysis,
-                                                }),
-                                            });
-                                            if (res.ok) {
-                                                handleNext();
-                                            } else {
-                                                handleNext(); // Proceed anyway for demo
-                                            }
-                                        } catch (e) {
-                                            handleNext();
-                                        }
+                                    onSubmit={() => {
+                                        handleNext();
                                     }}
                                     onBack={handleBack}
                                 />

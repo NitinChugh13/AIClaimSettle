@@ -39,30 +39,31 @@ export default function AdminAnalyticsPage() {
 
     const fetchData = async () => {
         try {
-            const res = await fetch('/api/claims');
+            const res = await fetch('/api/admin/claims', { credentials: 'include' });
             const data = await res.json();
 
             // Calculate Metrics
-            const totalClaims = data.length;
-            const approvedClaims = data.filter((c: any) => c.status === 'approved');
-            const totalPayouts = approvedClaims.reduce((sum: number, c: any) => sum + c.totalAmount, 0);
+            const claimsArray = Array.isArray(data) ? data : (data.claims || data.data || []);
+            const totalClaims = claimsArray.length;
+            const approvedClaims = claimsArray.filter((c: any) => c.status === 'approved');
+            const totalPayouts = approvedClaims.reduce((sum: number, c: any) => sum + (c.ai_approved_amount || 0), 0);
 
             // Dynamic Fraud Prevention: sum of amounts from rejected/high fraud claims
-            const fraudPreventionAmount = data
-                .filter((c: any) => c.fraudScore > 50 || c.status === 'rejected')
-                .reduce((sum: number, c: any) => sum + c.totalAmount, 0);
+            const fraudPreventionAmount = claimsArray
+                .filter((c: any) => (c.ai_confidence_score < 70) || c.status === 'rejected')
+                .reduce((sum: number, c: any) => sum + (c.ai_approved_amount || 0), 0);
 
             setStats({
                 totalClaims,
                 totalPayouts,
-                avgSettlementTime: data.length > 0 ? 'Live (Real-time Sync)' : 'N/A', // Dynamic status
+                avgSettlementTime: claimsArray.length > 0 ? 'Live (Real-time Sync)' : 'N/A', // Dynamic status
                 fraudPrevention: fraudPreventionAmount,
             });
 
             // Volume Distribution
             const volumeMap: Record<string, any> = {};
-            data.forEach((c: any) => {
-                const month = new Date(c.createdAt).toLocaleString('default', { month: 'short' });
+            claimsArray.forEach((c: any) => {
+                const month = new Date(c.created_at).toLocaleString('default', { month: 'short' });
                 if (!volumeMap[month]) volumeMap[month] = { name: month, claims: 0, approved: 0 };
                 volumeMap[month].claims++;
                 if (c.status === 'approved') volumeMap[month].approved++;
@@ -71,8 +72,8 @@ export default function AdminAnalyticsPage() {
 
             // Dynamic Processing Data (Claims per Day of Week)
             const daysMap: Record<string, number> = { 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0 };
-            data.forEach((c: any) => {
-                const day = new Date(c.createdAt).toLocaleString('default', { weekday: 'short' });
+            claimsArray.forEach((c: any) => {
+                const day = new Date(c.created_at).toLocaleString('default', { weekday: 'short' });
                 if (daysMap[day] !== undefined) {
                     daysMap[day]++;
                 }

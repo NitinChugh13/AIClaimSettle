@@ -5,7 +5,9 @@ export function generateMockAnalysis(policy: Policy, incidentLocation: string = 
     const ageMonths = getVehicleAgeMonths(policy.vehicle_year);
     const tier = getCityTier(incidentLocation);
     const laborRate = getLaborRate(tier);
-    const deductible = getCompulsoryDeductible(policy.vehicle_type, policy.engine_cc);
+    const vehicleType = (policy.vehicle_type as any) === 'two_wheeler' ? 'two_wheeler' :
+        (policy.vehicle_type as any) === 'commercial' ? 'commercial' : 'car';
+    const deductible = getCompulsoryDeductible(vehicleType, (policy as any).engine_cc || 1200);
 
     const depRate = policy.zero_depreciation ? 0 : getDepreciationRate('standard', ageMonths);
     const plasticDepRate = policy.zero_depreciation ? 0 : getDepreciationRate('rubber_plastic', ageMonths);

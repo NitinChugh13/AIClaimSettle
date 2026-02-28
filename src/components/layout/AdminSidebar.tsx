@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSidebarStore } from '@/store/useSidebarStore';
 import Link from 'next/link';
 import {
@@ -15,6 +15,7 @@ import {
     Divider,
     Typography,
     Avatar,
+    Button,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -24,6 +25,7 @@ import {
     Settings as SettingsIcon,
     Dashboard as DashboardIcon,
     Security as ShieldIcon,
+    ExitToApp as LogoutIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 260;
@@ -37,6 +39,7 @@ const navItems = [
 export default function AdminSidebar() {
     const { isCollapsed, toggleSidebar, isMobileOpen, setMobileOpen } = useSidebarStore();
     const pathname = usePathname();
+    const router = useRouter();
 
     const sidebarContent = (
         <Box
@@ -198,6 +201,36 @@ export default function AdminSidebar() {
                         <Typography sx={{ color: '#94A3B8', fontSize: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Engineered By</Typography>
                         <Typography sx={{ color: '#1E3A5F', fontSize: '11px', fontWeight: 900 }}>NITIN CHUGH</Typography>
                     </Box>
+                </Box>
+
+                {/* Logout Button */}
+                <Box sx={{ mt: 2 }}>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        startIcon={<LogoutIcon />}
+                        onClick={async () => {
+                            try {
+                                await fetch('/api/admin/auth/logout', { method: 'POST', credentials: 'include' });
+                                router.push('/admin/login');
+                            } catch (error) {
+                                router.push('/admin/login');
+                            }
+                        }}
+                        sx={{
+                            borderRadius: '10px',
+                            textTransform: 'uppercase',
+                            fontSize: '0.7rem',
+                            fontWeight: 800,
+                            letterSpacing: 1,
+                            borderColor: '#E2E8F0',
+                            color: '#64748B',
+                            '&:hover': { borderColor: '#D64045', color: '#D64045', bgcolor: 'rgba(214, 64, 69, 0.05)' }
+                        }}
+                    >
+                        {!isCollapsed ? 'Disconnect' : ''}
+                    </Button>
                 </Box>
             </Box>
         </Box>

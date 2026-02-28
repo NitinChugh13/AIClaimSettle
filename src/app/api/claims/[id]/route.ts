@@ -10,67 +10,44 @@ const supabaseAdmin = createClient(
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { id } = await params;
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
 
-        if (!token) {
-            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const decoded = await verifyToken(token);
-        if (!decoded) {
-            return NextResponse.json({ success: false, error: 'Invalid session' }, { status: 401 });
-        }
+        console.log('[Claim Detail API] Fetching details for:', id);
 
         const { data: claim, error } = await supabaseAdmin
             .from('claims')
             .select(`
                 *,
-                policy:policies(*),
-                documents:claim_documents(*),
-                damage_items(*),
-                assignment:surveyor_assignments(
+                claim_documents (*),
+                users!claims_user_id_fkey (
+                    full_name, mobile, email
+                ),
+                policies!claims_policy_id_fkey (
+                    vehicle_make, vehicle_model,
+                    vehicle_year, vehicle_number,
+                    insurer_name, idv_value,
+                    policy_number
+                ),
+                surveyor_assignments (
                     *,
-                    surveyor:surveyors(*)
+                    surveyors (full_name, mobile, license_number)
                 )
             `)
             .eq('id', id)
             .single();
 
         if (error || !claim) {
-            return NextResponse.json({ success: false, error: 'Claim not found' }, { status: 404 });
+            console.error('[Claim Detail API] Error or not found:', error);
+            return NextResponse.json(
+                { success: false, error: error?.message || 'Claim not found' },
+                { status: 404 }
+            );
         }
 
-        // Security check: ensure user owns this claim
-        if (claim.user_id !== decoded.userId) {
-            return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 });
-        }
-
-        // Map to frontend interface
-        const result = {
-            id: claim.id,
-            status: claim.status,
-            vehicleModel: `${claim.policy?.vehicle_make} ${claim.policy?.vehicle_model}`,
-            vehicleReg: claim.policy?.vehicle_number,
-            createdAt: claim.created_at,
-            totalAmount: claim.ai_final_amount || claim.estimated_repair_cost || 0,
-            incidentType: claim.incident_type,
-            incidentDate: claim.incident_date,
-            damageItems: (claim.damage_items || []).map((item: any) => ({
-                id: item.id,
-                partName: item.part_name,
-                severity: item.damage_severity,
-                action: item.ai_recommendation,
-                netSubtotal: item.item_net_amount
-            }))
-        };
-
-        return NextResponse.json(result);
-
+        return NextResponse.json({ success: true, claim });
     } catch (error: any) {
         console.error('Get Claim API Error:', error);
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });

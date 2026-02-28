@@ -50,11 +50,15 @@ export async function GET(request: Request) {
         // Map to the format the dashboard expects
         const formattedClaims = claims.map((claim: any) => ({
             id: claim.id,
+            claim_number: claim.claim_number,
             policyNumber: claim.policy?.policy_number || 'N/A',
             vehicleReg: claim.policy?.vehicle_number || 'N/A',
             incidentType: claim.incident_type,
             incidentDate: claim.incident_date,
-            totalAmount: claim.ai_final_amount || claim.estimated_repair_cost || 0,
+            estimated_repair_cost: claim.estimated_repair_cost || 0,
+            ai_approved_amount: claim.ai_approved_amount || 0,
+            final_approved_amount: claim.final_approved_amount || 0,
+            totalAmount: claim.final_approved_amount || claim.ai_approved_amount || claim.estimated_repair_cost || 0,
             status: claim.status,
             createdAt: claim.created_at
         }));

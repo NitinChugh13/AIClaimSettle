@@ -251,7 +251,14 @@ export default function OfficerSidebar() {
                             size="small"
                             fullWidth
                             startIcon={<LogoutIcon />}
-                            onClick={() => router.push('/')}
+                            onClick={async () => {
+                                try {
+                                    await fetch('/api/officer/auth/logout', { method: 'POST', credentials: 'include' });
+                                    router.push('/officer/login');
+                                } catch (error) {
+                                    router.push('/officer/login');
+                                }
+                            }}
                             sx={{
                                 borderRadius: '10px',
                                 textTransform: 'uppercase',
@@ -265,7 +272,14 @@ export default function OfficerSidebar() {
                     </Box>
                 ) : (
                     <IconButton
-                        onClick={() => router.push('/')}
+                        onClick={async () => {
+                            try {
+                                await fetch('/api/officer/auth/logout', { method: 'POST', credentials: 'include' });
+                                router.push('/officer/login');
+                            } catch (error) {
+                                router.push('/officer/login');
+                            }
+                        }}
                         sx={{
                             width: '100%',
                             borderRadius: '12px',
