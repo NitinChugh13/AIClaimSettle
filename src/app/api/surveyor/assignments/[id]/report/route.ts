@@ -15,7 +15,9 @@ export async function PATCH(
     try {
         const { id } = await params;
         const cookieStore = await cookies();
-        const token = cookieStore.get('admin_token')?.value;
+        const surveyorToken = cookieStore.get('surveyor_token')?.value;
+        const adminToken = cookieStore.get('admin_token')?.value;
+        const token = surveyorToken || adminToken;
 
         if (!token) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });

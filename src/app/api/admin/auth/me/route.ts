@@ -5,7 +5,11 @@ import { verifyToken } from '@/lib/auth';
 export async function GET() {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('admin_token')?.value;
+        const adminToken = cookieStore.get('admin_token')?.value;
+        const officerToken = cookieStore.get('officer_token')?.value;
+        const surveyorToken = cookieStore.get('surveyor_token')?.value;
+
+        const token = adminToken || officerToken || surveyorToken;
 
         if (!token) {
             return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });

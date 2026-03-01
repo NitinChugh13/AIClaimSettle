@@ -1,34 +1,34 @@
 import Groq from 'groq-sdk';
 
 const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 export async function analyzeClaimWithGroq(
-    claimData: {
-        incident_type: string;
-        incident_description: string;
-        estimated_repair_cost: number;
-        document_urls: string[];
-    },
-    policy: {
-        vehicle_year: number;
-        vehicle_make: string;
-        vehicle_model: string;
-        vehicle_type: string;
-        idv_value: number;
-        policy_type: string;
-        zero_depreciation: boolean;
-        depreciation_rate: number;
-        ncb_percentage: number;
-        own_damage_cover: boolean;
-        personal_accident_cover: boolean;
-    }
+  claimData: {
+    incident_type: string;
+    incident_description: string;
+    estimated_repair_cost: number;
+    document_urls: string[];
+  },
+  policy: {
+    vehicle_year: number;
+    vehicle_make: string;
+    vehicle_model: string;
+    vehicle_type: string;
+    idv_value: number;
+    policy_type: string;
+    zero_depreciation: boolean;
+    depreciation_rate: number;
+    ncb_percentage: number;
+    own_damage_cover: boolean;
+    personal_accident_cover: boolean;
+  }
 ) {
-    const currentYear = new Date().getFullYear();
-    const vehicleAge = currentYear - policy.vehicle_year;
+  const currentYear = new Date().getFullYear();
+  const vehicleAge = currentYear - policy.vehicle_year;
 
-    const prompt = `
+  const prompt = `
 You are an IRDA-certified motor insurance claim assessor in India. Analyze this claim and provide a fair, detailed assessment in a structured format.
 
 POLICY DETAILS:
@@ -91,24 +91,24 @@ Respond ONLY with valid JSON following this EXACT structure:
   "processing_time_ms": 0
 }`;
 
-    const startTime = Date.now();
-    const response = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.1,
-        max_tokens: 2000,
-    });
+  const startTime = Date.now();
+  const response = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.1,
+    max_tokens: 2000,
+  });
 
-    const endTime = Date.now();
-    const content = response.choices[0].message.content || '';
+  const endTime = Date.now();
+  const content = response.choices[0].message.content || '';
 
-    try {
-        const clean = content.replace(/```json|```/g, '').trim();
-        const json = JSON.parse(clean);
-        json.processing_time_ms = endTime - startTime;
-        return json;
-    } catch (e) {
-        console.error('Failed to parse Groq response:', content);
-        throw new Error('Neural Engine returned malformed assessment node.');
-    }
+  try {
+    const clean = content.replace(/```json|```/g, '').trim();
+    const json = JSON.parse(clean);
+    json.processing_time_ms = endTime - startTime;
+    return json;
+  } catch (e) {
+    console.error('Failed to parse Groq response:', content);
+    throw new Error('Neural Engine returned malformed assessment node.');
+  }
 }

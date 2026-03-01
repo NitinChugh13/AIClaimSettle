@@ -12,7 +12,7 @@ export async function PATCH(
 ) {
     try {
         const { id } = await params;
-        const { surveyor_id, inspection_date, notes } = await request.json();
+        const { surveyor_id, inspection_date, notes: officer_notes } = await request.json();
 
         // 1. Create surveyor assignment
         const { data: assignment, error: assignmentError } = await supabaseAdmin
@@ -21,7 +21,7 @@ export async function PATCH(
                 claim_id: id,
                 surveyor_id: surveyor_id,
                 inspection_date: inspection_date,
-                notes: notes
+                inspection_notes: officer_notes
             })
             .select()
             .single();

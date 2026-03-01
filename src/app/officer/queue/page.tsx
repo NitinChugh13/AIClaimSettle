@@ -121,7 +121,7 @@ export default function OfficerQueuePage() {
                     all_keys: Object.keys(data.claim)
                 });
                 setSelected(data.claim);
-                setFinalAmount(data.claim.ai_approved_amount?.toString() || '');
+                setFinalAmount(data.claim.status === 'surveyor_reported' ? data.claim.surveyor_amount?.toString() || '' : data.claim.ai_approved_amount?.toString() || '');
             }
         } catch (error) {
             console.error('Error fetching claim detail:', error);
@@ -572,135 +572,278 @@ export default function OfficerQueuePage() {
                                     </Grid>
                                 </Paper>
 
-                                {/* Action Console */}
-                                {['ai_reviewed', 'ai_complete', 'officer_review', 'info_requested', 'under_review', 'surveyor_assigned'].includes(selected.status) ? (
-                                    <Box sx={{ mt: 4 }}>
-                                        {!actionType ? (
-                                            <Stack direction="row" spacing={2}>
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={() => setActionType('approve')}
-                                                    startIcon={<CheckCircleIcon />}
-                                                    sx={{ flex: 1, height: 48, borderRadius: '12px', bgcolor: '#10B981', fontWeight: 900, textTransform: 'uppercase' }}
-                                                >
-                                                    Approve
-                                                </Button>
-                                                <Button
-                                                    variant="outlined"
-                                                    onClick={() => setActionType('assign')}
-                                                    startIcon={<AssignIcon />}
-                                                    sx={{ flex: 1, height: 48, borderRadius: '12px', borderColor: '#2D5F9E', color: '#2D5F9E', fontWeight: 900, textTransform: 'uppercase' }}
-                                                >
-                                                    Assign Surveyor
-                                                </Button>
-                                                <Button
-                                                    variant="outlined"
-                                                    onClick={() => setActionType('reject')}
-                                                    startIcon={<XCircleIcon />}
-                                                    sx={{ flex: 1, height: 48, borderRadius: '12px', borderColor: '#EF4444', color: '#EF4444', fontWeight: 900, textTransform: 'uppercase' }}
-                                                >
-                                                    Reject
-                                                </Button>
-                                            </Stack>
-                                        ) : (
-                                            <Paper sx={{ p: 4, borderRadius: '20px', border: '1px solid #CBD5E1', borderLeft: `6px solid ${actionType === 'approve' ? '#10B981' : actionType === 'reject' ? '#EF4444' : '#2D5F9E'}` }}>
-                                                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                                                    <Typography variant="h6" fontWeight="900" sx={{ textTransform: 'uppercase', color: '#1E3A5F' }}>
-                                                        {actionType}al Protocol
-                                                    </Typography>
-                                                    <IconButton onClick={() => setActionType(null)}><XCircleIcon /></IconButton>
-                                                </Stack>
+                                {/* Surveyor Report Card - Persistent if data exists */}
+                                {selected.surveyor_assignments?.[0]?.vehicle_condition && (
+                                    <Box sx={{
+                                        p: 3,
+                                        mb: 4,
+                                        borderRadius: '16px',
+                                        bgcolor: '#F0F9FF',
+                                        border: '1px solid #0EA5E9',
+                                        boxShadow: 'none'
+                                    }}>
+                                        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+                                            <AssignIcon sx={{ color: '#0EA5E9' }} />
+                                            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0369A1', textTransform: 'uppercase' }}>
+                                                👨&zwj;💼 Surveyor Inspection Report
+                                            </Typography>
+                                        </Stack>
 
-                                                <Stack spacing={3}>
-                                                    {actionType === 'approve' && (
-                                                        <TextField
-                                                            fullWidth
-                                                            label="Final Settlement Amount (₹)"
-                                                            type="number"
-                                                            value={finalAmount}
-                                                            onChange={e => setFinalAmount(e.target.value)}
-                                                            InputProps={{ startAdornment: <MoneyIcon sx={{ mr: 1, color: '#94A3B8' }} /> }}
-                                                        />
-                                                    )}
-
-                                                    {actionType === 'reject' && (
-                                                        <FormControl fullWidth>
-                                                            <InputLabel>Rejection Reason</InputLabel>
-                                                            <Select
-                                                                value={rejectionReason}
-                                                                label="Rejection Reason"
-                                                                onChange={e => setRejectionReason(e.target.value)}
-                                                            >
-                                                                <MenuItem value="Invalid Documents">Invalid Documents</MenuItem>
-                                                                <MenuItem value="Policy Not Covered">Policy Not Covered</MenuItem>
-                                                                <MenuItem value="Fraudulent Activity Suspected">Fraudulent Activity Suspected</MenuItem>
-                                                                <MenuItem value="Damage Inconsistent with Statement">Damage Inconsistent with Statement</MenuItem>
-                                                            </Select>
-                                                        </FormControl>
-                                                    )}
-
-                                                    {actionType === 'assign' && (
-                                                        <Grid container spacing={2}>
-                                                            <Grid size={{ xs: 12, md: 6 }}>
-                                                                <FormControl fullWidth>
-                                                                    <InputLabel>Surveyor Node</InputLabel>
-                                                                    <Select
-                                                                        value={surveyorId}
-                                                                        label="Surveyor Node"
-                                                                        onChange={e => setSurveyorId(e.target.value)}
-                                                                    >
-                                                                        {surveyors.map(s => (
-                                                                            <MenuItem key={s.id} value={s.id}>{s.full_name} ({s.license_number})</MenuItem>
-                                                                        ))}
-                                                                    </Select>
-                                                                </FormControl>
-                                                            </Grid>
-                                                            <Grid size={{ xs: 12, md: 6 }}>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    label="Inspection Date"
-                                                                    type="date"
-                                                                    value={inspectionDate}
-                                                                    onChange={e => setInspectionDate(e.target.value)}
-                                                                />
-                                                            </Grid>
-                                                        </Grid>
-                                                    )}
-
-                                                    <TextField
-                                                        fullWidth
-                                                        multiline
-                                                        rows={3}
-                                                        label="Officer Internal Notes"
-                                                        value={officerNotes}
-                                                        onChange={e => setOfficerNotes(e.target.value)}
-                                                    />
-
-                                                    <Button
-                                                        fullWidth
-                                                        variant="contained"
-                                                        onClick={handleAction}
-                                                        sx={{ height: 50, borderRadius: '12px', bgcolor: actionType === 'approve' ? '#10B981' : actionType === 'reject' ? '#EF4444' : '#2D5F9E', fontWeight: 900, textTransform: 'uppercase' }}
-                                                    >
-                                                        Commit {actionType}al
-                                                    </Button>
-                                                </Stack>
-                                            </Paper>
-                                        )}
-                                    </Box>
-                                ) : (
-                                    <Box sx={{ mt: 4, p: 3, borderRadius: '16px', bgcolor: selected.status === 'approved' ? '#ECFDF5' : selected.status === 'rejected' ? '#FEF2F2' : '#F1F5F9', textAlign: 'center', border: '1px solid', borderColor: selected.status === 'approved' ? '#10B981' : selected.status === 'rejected' ? '#EF4444' : '#E2E8F0' }}>
-                                        {selected.status === 'approved' ? <BadgeCheckIcon sx={{ fontSize: 40, color: '#10B981', mb: 1 }} /> : <XCircleIcon sx={{ fontSize: 40, color: '#EF4444', mb: 1 }} />}
-                                        <Typography sx={{ fontWeight: 900, color: '#1E3A5F', textTransform: 'uppercase' }}>
-                                            Case {selected.status.replace('_', ' ').toUpperCase()}
-                                        </Typography>
-                                        <Typography sx={{ fontSize: '12px', color: '#64748B' }}>
-                                            {selected.status === 'approved' ? 'Claim has been finalized and settlement protocol initiated.' :
-                                                selected.status === 'rejected' ? 'Claim has been rejected based on officer technical assessment.' :
-                                                    'No further manual intervention required on this node.'}
-                                        </Typography>
+                                        <Grid container spacing={3}>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#0EA5E9', textTransform: 'uppercase', mb: 0.5 }}>
+                                                    Surveyor Recommended Amount
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '20px', fontWeight: 900, color: '#0369A1' }}>
+                                                    ₹{selected.surveyor_amount?.toLocaleString('en-IN')}
+                                                </Typography>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#0EA5E9', textTransform: 'uppercase', mb: 0.5 }}>
+                                                    Vehicle Condition
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '16px', fontWeight: 800, color: '#1E3A5F', textTransform: 'capitalize' }}>
+                                                    {selected.surveyor_assignments?.[0]?.vehicle_condition || 'N/A'}
+                                                </Typography>
+                                            </Grid>
+                                            <Grid size={{ xs: 12 }}>
+                                                <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#0EA5E9', textTransform: 'uppercase', mb: 0.5 }}>
+                                                    Inspection Notes
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+                                                    {selected.surveyor_assignments?.[0]?.inspection_notes || 'No notes provided.'}
+                                                </Typography>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#0EA5E9', textTransform: 'uppercase', mb: 0.5 }}>
+                                                    Inspected By
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#1E3A5F' }}>
+                                                    {selected.surveyor_assignments?.[0]?.surveyors?.full_name || 'Assigned Surveyor'}
+                                                </Typography>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#0EA5E9', textTransform: 'uppercase', mb: 0.5 }}>
+                                                    Inspection Date
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#1E3A5F', display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <EventIcon sx={{ fontSize: 16, color: '#64748B' }} />
+                                                    {selected.surveyor_assignments?.[0]?.inspection_date || 'N/A'}
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
                                     </Box>
                                 )}
+
+                                {/* Action Console */}
+                                {(() => {
+                                    const isPending = [
+                                        'ai_reviewed',
+                                        'ai_complete',
+                                        'officer_review',
+                                        'info_requested',
+                                        'under_review',
+                                        'surveyor_assigned',
+                                        'survey_requested',
+                                        'surveyor_reported'
+                                    ].includes(selected.status);
+
+                                    if (isPending) {
+                                        return (
+                                            <Box sx={{ mt: 4 }}>
+                                                {!actionType ? (
+                                                    <Box>
+                                                        {selected.status === 'survey_requested' && (
+                                                            <Box sx={{ p: 2, mb: 3, borderRadius: '12px', bgcolor: '#FEF3C7', border: '1px solid #FDE68A', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                                <AlertTriangleIcon sx={{ color: '#D97706' }} />
+                                                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#B45309' }}>⚠️ Customer Requested Physical Survey</Typography>
+                                                            </Box>
+                                                        )}
+                                                        {selected.status === 'surveyor_reported' && (
+                                                            <Box sx={{ p: 2, mb: 3, borderRadius: '12px', bgcolor: '#ECFDF5', border: '1px solid #10B981', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                                <CheckCircleIcon sx={{ color: '#059669' }} />
+                                                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#065F46' }}>✅ Surveyor inspection complete. Surveyor recommended: ₹{selected.surveyor_amount?.toLocaleString('en-IN')}</Typography>
+                                                            </Box>
+                                                        )}
+                                                        <Stack direction="row" spacing={2}>
+                                                            {selected.status === 'survey_requested' ? (
+                                                                <>
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        onClick={() => setActionType('assign')}
+                                                                        startIcon={<AssignIcon />}
+                                                                        sx={{ flex: 2, height: 48, borderRadius: '12px', bgcolor: '#F59E0B', color: '#FFF', fontWeight: 900, textTransform: 'uppercase', '&:hover': { bgcolor: '#D97706' } }}
+                                                                    >
+                                                                        Assign Surveyor
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outlined"
+                                                                        onClick={() => setActionType('approve')}
+                                                                        sx={{ flex: 1, height: 48, borderRadius: '12px', borderColor: '#10B981', color: '#10B981', fontWeight: 900, textTransform: 'uppercase' }}
+                                                                    >
+                                                                        Approve
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outlined"
+                                                                        onClick={() => setActionType('reject')}
+                                                                        sx={{ flex: 1, height: 48, borderRadius: '12px', borderColor: '#EF4444', color: '#EF4444', fontWeight: 900, textTransform: 'uppercase' }}
+                                                                    >
+                                                                        Reject
+                                                                    </Button>
+                                                                </>
+                                                            ) : selected.status === 'surveyor_reported' ? (
+                                                                <>
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        onClick={() => setActionType('approve')}
+                                                                        startIcon={<CheckCircleIcon />}
+                                                                        sx={{ flex: 1, height: 48, borderRadius: '12px', bgcolor: '#10B981', fontWeight: 900, textTransform: 'uppercase' }}
+                                                                    >
+                                                                        Approve
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outlined"
+                                                                        onClick={() => setActionType('reject')}
+                                                                        startIcon={<XCircleIcon />}
+                                                                        sx={{ flex: 1, height: 48, borderRadius: '12px', borderColor: '#EF4444', color: '#EF4444', fontWeight: 900, textTransform: 'uppercase' }}
+                                                                    >
+                                                                        Reject
+                                                                    </Button>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        onClick={() => setActionType('approve')}
+                                                                        startIcon={<CheckCircleIcon />}
+                                                                        sx={{ flex: 1, height: 48, borderRadius: '12px', bgcolor: '#10B981', fontWeight: 900, textTransform: 'uppercase' }}
+                                                                    >
+                                                                        Approve
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outlined"
+                                                                        onClick={() => setActionType('assign')}
+                                                                        startIcon={<AssignIcon />}
+                                                                        sx={{ flex: 1, height: 48, borderRadius: '12px', borderColor: '#2D5F9E', color: '#2D5F9E', fontWeight: 900, textTransform: 'uppercase' }}
+                                                                    >
+                                                                        Assign Surveyor
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outlined"
+                                                                        onClick={() => setActionType('reject')}
+                                                                        startIcon={<XCircleIcon />}
+                                                                        sx={{ flex: 1, height: 48, borderRadius: '12px', borderColor: '#EF4444', color: '#EF4444', fontWeight: 900, textTransform: 'uppercase' }}
+                                                                    >
+                                                                        Reject
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                        </Stack>
+                                                    </Box>
+                                                ) : (
+                                                    <Paper sx={{ p: 4, borderRadius: '20px', border: '1px solid #CBD5E1', borderLeft: `6px solid ${actionType === 'approve' ? '#10B981' : actionType === 'reject' ? '#EF4444' : '#2D5F9E'}` }}>
+                                                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+                                                            <Typography variant="h6" fontWeight="900" sx={{ textTransform: 'uppercase', color: '#1E3A5F' }}>
+                                                                {actionType}al Protocol
+                                                            </Typography>
+                                                            <IconButton onClick={() => setActionType(null)}><XCircleIcon /></IconButton>
+                                                        </Stack>
+
+                                                        <Stack spacing={3}>
+                                                            {actionType === 'approve' && (
+                                                                <TextField
+                                                                    fullWidth
+                                                                    label="Final Settlement Amount (₹)"
+                                                                    type="number"
+                                                                    value={finalAmount}
+                                                                    onChange={e => setFinalAmount(e.target.value)}
+                                                                    InputProps={{ startAdornment: <MoneyIcon sx={{ mr: 1, color: '#94A3B8' }} /> }}
+                                                                />
+                                                            )}
+
+                                                            {actionType === 'reject' && (
+                                                                <FormControl fullWidth>
+                                                                    <InputLabel>Rejection Reason</InputLabel>
+                                                                    <Select
+                                                                        value={rejectionReason}
+                                                                        label="Rejection Reason"
+                                                                        onChange={e => setRejectionReason(e.target.value)}
+                                                                    >
+                                                                        <MenuItem value="Invalid Documents">Invalid Documents</MenuItem>
+                                                                        <MenuItem value="Policy Not Covered">Policy Not Covered</MenuItem>
+                                                                        <MenuItem value="Fraudulent Activity Suspected">Fraudulent Activity Suspected</MenuItem>
+                                                                        <MenuItem value="Damage Inconsistent with Statement">Damage Inconsistent with Statement</MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                            )}
+
+                                                            {actionType === 'assign' && (
+                                                                <Grid container spacing={2}>
+                                                                    <Grid size={{ xs: 12, md: 6 }}>
+                                                                        <FormControl fullWidth>
+                                                                            <InputLabel>Surveyor Node</InputLabel>
+                                                                            <Select
+                                                                                value={surveyorId}
+                                                                                label="Surveyor Node"
+                                                                                onChange={e => setSurveyorId(e.target.value)}
+                                                                            >
+                                                                                {surveyors.map(s => (
+                                                                                    <MenuItem key={s.id} value={s.id}>{s.full_name} ({s.license_number})</MenuItem>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </FormControl>
+                                                                    </Grid>
+                                                                    <Grid size={{ xs: 12, md: 6 }}>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            label="Inspection Date"
+                                                                            type="date"
+                                                                            value={inspectionDate}
+                                                                            onChange={e => setInspectionDate(e.target.value)}
+                                                                        />
+                                                                    </Grid>
+                                                                </Grid>
+                                                            )}
+
+                                                            <TextField
+                                                                fullWidth
+                                                                multiline
+                                                                rows={3}
+                                                                label="Officer Internal Notes"
+                                                                value={officerNotes}
+                                                                onChange={e => setOfficerNotes(e.target.value)}
+                                                            />
+
+                                                            <Button
+                                                                fullWidth
+                                                                variant="contained"
+                                                                onClick={handleAction}
+                                                                sx={{ height: 50, borderRadius: '12px', bgcolor: actionType === 'approve' ? '#10B981' : actionType === 'reject' ? '#EF4444' : '#2D5F9E', fontWeight: 900, textTransform: 'uppercase' }}
+                                                            >
+                                                                Commit {actionType}al
+                                                            </Button>
+                                                        </Stack>
+                                                    </Paper>
+                                                )}
+                                            </Box>
+                                        );
+                                    } else {
+                                        return (
+                                            <Box sx={{ mt: 4, p: 3, borderRadius: '16px', bgcolor: selected.status === 'approved' ? '#ECFDF5' : selected.status === 'rejected' ? '#FEF2F2' : '#F1F5F9', textAlign: 'center', border: '1px solid', borderColor: selected.status === 'approved' ? '#10B981' : selected.status === 'rejected' ? '#EF4444' : '#E2E8F0' }}>
+                                                {selected.status === 'approved' ? <BadgeCheckIcon sx={{ fontSize: 40, color: '#10B981', mb: 1 }} /> : <XCircleIcon sx={{ fontSize: 40, color: '#EF4444', mb: 1 }} />}
+                                                <Typography sx={{ fontWeight: 900, color: '#1E3A5F', textTransform: 'uppercase' }}>
+                                                    Case {selected.status.replace('_', ' ').toUpperCase()}
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '12px', color: '#64748B' }}>
+                                                    {selected.status === 'approved' ? 'Claim has been finalized and settlement protocol initiated.' :
+                                                        selected.status === 'rejected' ? 'Claim has been rejected based on officer technical assessment.' :
+                                                            selected.status === 'survey_requested' ? 'Customer has requested a physical survey. Please assign a surveyor.' :
+                                                                'No further manual intervention required on this node.'}
+                                                </Typography>
+                                            </Box>
+                                        );
+                                    }
+                                })()}
                             </motion.div>
                         ) : (
                             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 8, textAlign: 'center', gap: 4 }}>

@@ -23,7 +23,7 @@ export async function GET(
                 policies!claims_policy_id_fkey (
                     vehicle_make, vehicle_model, vehicle_year, vehicle_number
                 ),
-                surveyor_assignments (*)
+                surveyor_assignments (*, surveyors (full_name, license_number, mobile))
             `)
             .eq('id', id)
             .single();

@@ -11,7 +11,9 @@ const supabaseAdmin = createClient(
 export async function GET() {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('admin_token')?.value;
+        const surveyorToken = cookieStore.get('surveyor_token')?.value;
+        const adminToken = cookieStore.get('admin_token')?.value;
+        const token = surveyorToken || adminToken;
 
         if (!token) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -26,8 +28,10 @@ export async function GET() {
             .from('surveyor_assignments')
             .select(`
                 *,
+                completed_at,
                 claims (
                     *,
+                    claim_documents (*),
                     users (full_name),
                     policies (policy_number, vehicle_make, vehicle_model, vehicle_number)
                 )

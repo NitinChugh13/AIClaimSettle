@@ -44,7 +44,9 @@ export async function POST(request: Request) {
 
         // 4. Set cookie based on role
         const cookieStore = await cookies();
-        const cookieName = user.role === 'admin' ? 'admin_token' : 'officer_token';
+        let cookieName = 'auth_token';
+        if (user.role === 'admin') cookieName = 'admin_token';
+        else if (user.role === 'officer') cookieName = 'officer_token';
 
         cookieStore.set(cookieName, token, {
             httpOnly: true,
@@ -57,8 +59,11 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             user: {
+                id: user.id,
                 name: user.full_name,
-                role: user.role
+                role: user.role,
+                email: user.email,
+                license_number: user.license_number
             }
         });
 
