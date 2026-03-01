@@ -173,13 +173,11 @@ export default function UserDashboard() {
                         <Logo variant="dark" />
                     </Link>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                        {mounted && !authLoading && (
+                        {mounted && !authLoading && user && (
                             <>
-                                {user && (
-                                    <Box sx={{ fontWeight: 600, color: '#4A6080', display: { xs: 'none', sm: 'block' } }}>
-                                        👋 {user.full_name}
-                                    </Box>
-                                )}
+                                <Box sx={{ fontWeight: 600, color: '#4A6080', display: { xs: 'none', sm: 'block' } }}>
+                                    👋 {user.full_name}
+                                </Box>
                                 <Link href="/claim/track" passHref style={{ textDecoration: 'none' }}>
                                     <Button
                                         variant="text"

@@ -17,8 +17,17 @@ export async function GET() {
         const adminToken = cookieStore.get('admin_token')?.value;
         const authToken = cookieStore.get('auth_token')?.value;
 
-        // Token prioritization: Management tokens first, then standard claimant token
-        let token = adminToken || officerToken || surveyorToken || authToken;
+        // Token prioritization: Claimant token first, then management tokens
+        let token = null;
+        let isManagementToken = false;
+
+        if (authToken) {
+            token = authToken;
+            isManagementToken = false;
+        } else if (adminToken || officerToken || surveyorToken) {
+            token = adminToken || officerToken || surveyorToken;
+            isManagementToken = true;
+        }
 
         if (!token) {
             return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
@@ -28,12 +37,13 @@ export async function GET() {
         let payload = await verifyToken(token);
 
         if (!payload || !payload.userId) {
-            // If the first token failed, but others exist, try standard authToken as fallback
-            if (token !== authToken && authToken) {
+            // Fallback to standard authToken if management token failed
+            if (isManagementToken && authToken) {
                 const secondPayload = await verifyToken(authToken);
                 if (secondPayload && secondPayload.userId) {
                     token = authToken;
-                    payload = secondPayload; // Use the successful fallback payload
+                    payload = secondPayload;
+                    isManagementToken = false; // Successfully fell back to claimant
                 } else {
                     return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
                 }
@@ -44,8 +54,7 @@ export async function GET() {
 
 
         // 2. Fetch fresh user data from DB
-        // If it's a management token, they are in admin_users or surveyors
-        if (adminToken || officerToken || surveyorToken) {
+        if (isManagementToken) {
             // Check admin_users first for Admin/Officer
             if (adminToken || officerToken) {
                 const { data: user, error: userError } = await supabaseAdmin
