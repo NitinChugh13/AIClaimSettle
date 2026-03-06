@@ -88,6 +88,7 @@ import Logo from '@/components/Logo';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import TestimonialCarousel from '@/components/TestimonialCarousel';
 import NovaStrikeSection from '@/components/home/NovaStrikeSection';
+import ClaimNovaLoader from '@/components/ClaimNovaLoader';
 import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
@@ -116,6 +117,7 @@ export default function HomePage() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#EDF3FB' }}>
+      <ClaimNovaLoader />
 
       {/* Navigation */}
       <ElevationScroll>

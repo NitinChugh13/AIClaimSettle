@@ -67,25 +67,24 @@ export default function OfficerLoginPage() {
             />
 
             <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="w-full max-w-md mx-auto z-10 relative"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="w-full max-w-[480px] mx-auto z-10 relative"
             >
-                {/* Header */}
-                <div className="text-center mb-10">
-                    <Link href="/" className="inline-block mb-6">
-                        <Logo variant="dark" />
-                    </Link>
-                    <h1 className="text-3xl font-bold text-gray-900 font-serif">Officer Portal</h1>
-                    <p className="text-gray-500 mt-2 font-medium tracking-wide border-t border-gray-100 pt-2 mx-auto max-w-[200px]">Claims Review Center</p>
-                </div>
-
-                {/* Glass Card */}
                 <div
-                    className="border border-white/40 shadow-2xl relative bg-white/80 backdrop-blur-xl p-10 rounded-[32px] overflow-hidden"
+                    className="border border-white shadow-[0_20px_40px_rgba(30,58,95,0.1)] relative bg-white/95 backdrop-blur-xl px-8 py-9 sm:px-9 rounded-[28px]"
                 >
-                    <form onSubmit={handleLogin} className="flex flex-col gap-6">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <Link href="/" className="inline-block">
+                            <Logo variant="dark" />
+                        </Link>
+                        <h1 className="text-xl font-black text-[#1E3A5F] mt-5 uppercase tracking-tight">Officer Portal</h1>
+                        <p className="text-[#64748B] font-semibold text-[13px]">Claims Review Center</p>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="flex flex-col gap-5">
                         <div className="flex flex-col gap-4">
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="email">Officer Email</Label>
@@ -96,7 +95,7 @@ export default function OfficerLoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="officer@claimnova.in"
-                                    className="h-12 border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-500/10 transition-all"
+                                    className="h-12 border-gray-200 rounded-[14px] focus:ring-4 focus:ring-sky-500/10 transition-all"
                                 />
                             </div>
 
@@ -108,7 +107,7 @@ export default function OfficerLoginPage() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="h-12 border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-500/10 transition-all"
+                                    className="h-12 border-gray-200 rounded-[14px] focus:ring-4 focus:ring-sky-500/10 transition-all"
                                 />
                             </div>
                         </div>
@@ -116,12 +115,12 @@ export default function OfficerLoginPage() {
                         <Button
                             type="submit"
                             disabled={isSubmitting || !email || !password}
-                            className="w-full h-12 bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-900/10"
+                            className="w-full h-[52px] bg-[#0284C7] hover:bg-[#0369A1] text-white font-black rounded-[14px] uppercase tracking-widest transition-all shadow-lg shadow-sky-900/10"
                         >
                             {isSubmitting ? 'Verifying...' : 'Access Review Center'}
                         </Button>
 
-                        <div className="mt-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-center">
+                        <div className="mt-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-center">
                             <p className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Developer Access</p>
                             <p className="text-sm font-mono text-gray-600">officer@claimnova.in / Admin@1234</p>
                         </div>
