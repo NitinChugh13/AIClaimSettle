@@ -93,7 +93,7 @@ export function OtpInput({ length = 6, onComplete, onChange, disabled = false, e
                         onPaste={handlePaste}
                         disabled={disabled}
                         className={cn(
-                            "w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-semibold bg-white border-2 rounded-xl transition-all duration-200 outline-none",
+                            "w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-semibold bg-white border-2 rounded-md transition-all duration-200 outline-none",
                             error
                                 ? "border-red-500 bg-red-50 text-red-700 shake-animation"
                                 : digit

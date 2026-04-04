@@ -127,13 +127,13 @@ export default function IncidentDetailsStep({ policy, onComplete, onBack }: Prop
             <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography variant="h4" sx={{
                     fontFamily: '"DM Serif Display", serif',
-                    color: '#1E3A5F',
+                    color: '#111827',
                     mb: 1,
                     fontWeight: 700
                 }}>
                     Events & Timeline
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#5B7692' }}>
+                <Typography variant="body2" sx={{ color: '#6B7280' }}>
                     Reconstruct the incident details for our evaluation engine.
                 </Typography>
             </Box>

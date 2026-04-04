@@ -1,25 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import {
+    Box,
+    Typography,
+    TextField,
+    Button,
+    Paper,
+    Stack,
+    InputAdornment,
+    Alert,
+    CircularProgress
+} from '@mui/material';
+import {
+    Email as EmailIcon,
+    Lock as LockIcon,
+} from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { toast } from 'sonner';
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Logo from '@/components/Logo';
 
 export default function AdminLoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
+        setLoading(true);
+        setError('');
 
         try {
             const res = await fetch('/api/admin/auth/login', {
@@ -27,106 +38,109 @@ export default function AdminLoginPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
+
             const data = await res.json();
 
-            if (res.ok && data.success) {
-                toast.success('Admin authentication successful');
+            if (data.success) {
+                localStorage.setItem('admin', JSON.stringify({
+                    id: data.user.id,
+                    email: data.user.email,
+                    role: 'admin'
+                }));
                 router.push('/admin');
             } else {
-                toast.error(data.error || 'Invalid credentials');
+                setError(data.error || 'Login failed');
+                setLoading(false);
             }
-        } catch (error) {
-            toast.error('Network error during login');
-        } finally {
-            setIsSubmitting(false);
+        } catch (err) {
+            setError('Network error during login');
+            setLoading(false);
         }
     };
 
     return (
-        <div
-            className="min-h-screen relative flex items-center justify-center px-4 py-12 overflow-x-hidden"
-            style={{
-                background: 'linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%)',
-                backgroundSize: 'Cover',
-            }}
-        >
-            {/* Background Orbs */}
-            <div
-                className="fixed top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full pointer-events-none opacity-20"
-                style={{
-                    background: 'radial-gradient(circle, #2563EB 0%, transparent 70%)',
-                    zIndex: 0,
-                }}
-            />
-            <div
-                className="fixed bottom-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full pointer-events-none opacity-20"
-                style={{
-                    background: 'radial-gradient(circle, #1E3A5F 0%, transparent 70%)',
-                    zIndex: 0,
-                }}
-            />
-
+        <Box sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: '#F0F6FF',
+            p: 3
+        }} className="page-gradient-static">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
-                className="w-full max-w-[480px] mx-auto z-10 relative"
             >
-                <div
-                    className="border border-white shadow-[0_20px_40px_rgba(30,58,95,0.1)] relative bg-white/95 backdrop-blur-xl px-8 py-9 sm:px-9 rounded-[28px]"
-                >
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <Link href="/" className="inline-block">
-                            <Logo variant="dark" />
-                        </Link>
-                        <h1 className="text-xl font-black text-[#1E3A5F] mt-5 uppercase tracking-tight">Admin Portal</h1>
-                        <p className="text-[#64748B] font-semibold text-[13px]">ClaimNova Administration</p>
-                    </div>
+                <Paper sx={{
+                    p: 4.5,
+                    width: '100%',
+                    maxWidth: 480,
+                    borderRadius: '28px',
+                    boxShadow: '0 20px 40px rgba(30, 58, 95, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    bgcolor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid rgba(255, 255, 255, 1)'
+                }}>
+                    <Box sx={{ mb: 4, textAlign: 'center' }}>
+                        <Logo variant="dark" />
+                        <Typography variant="h5" fontWeight="900" sx={{ color: '#1E3A5F', mt: 3, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+                            Admin Portal
+                        </Typography>
+                        <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '13px' }}>
+                            ClaimNova Administration
+                        </Typography>
+                    </Box>
 
-                    <form onSubmit={handleLogin} className="flex flex-col gap-5">
-                        <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-2">
-                                <Label htmlFor="email">Admin Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="admin@claimnova.in"
-                                    className="h-12 border-gray-200 rounded-[14px] focus:ring-4 focus:ring-blue-500/10 transition-all"
-                                />
-                            </div>
+                    {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>{error}</Alert>}
 
-                            <div className="flex flex-col gap-2">
-                                <Label htmlFor="password">Security Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="h-12 border-gray-200 rounded-[14px] focus:ring-4 focus:ring-blue-500/10 transition-all"
-                                />
-                            </div>
-                        </div>
+                    <form onSubmit={handleLogin}>
+                        <Stack spacing={2.5}>
+                            <TextField
+                                fullWidth
+                                label="Admin Email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                InputProps={{
+                                    startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#94A3B8' }} /></InputAdornment>,
+                                }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Security Password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                InputProps={{
+                                    startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: '#94A3B8' }} /></InputAdornment>,
+                                }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+                            />
 
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting || !email || !password}
-                            className="w-full h-[52px] bg-[#1E3A5F] hover:bg-[#152D4A] text-white font-black rounded-[14px] uppercase tracking-widest transition-all shadow-lg shadow-blue-900/10"
-                        >
-                            {isSubmitting ? 'Verifying...' : 'Access Administration'}
-                        </Button>
-
-                        <div className="mt-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-center">
-                            <p className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Developer Access</p>
-                            <p className="text-sm font-mono text-gray-600">admin@claimnova.in / Admin@1234</p>
-                        </div>
+                            <Button
+                                fullWidth
+                                type="submit"
+                                variant="contained"
+                                disabled={loading}
+                                sx={{
+                                    height: 52,
+                                    borderRadius: '14px',
+                                    bgcolor: '#1E3A5F',
+                                    fontWeight: 900,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.1em',
+                                    '&:hover': { bgcolor: '#2D5F9E' }
+                                }}
+                            >
+                                {loading ? <CircularProgress size={24} color="inherit" /> : 'Access Administration'}
+                            </Button>
+                        </Stack>
                     </form>
-                </div>
+
+                </Paper>
             </motion.div>
-        </div>
+        </Box>
     );
 }

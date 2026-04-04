@@ -1,15 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
+import {
+    Box,
+    Paper,
+    Typography,
+    Stack,
+    TextField,
+    Button as MuiButton,
+    Alert,
+    CircularProgress,
+    InputAdornment
+} from '@mui/material';
+import {
+    Person as PersonIcon,
+    PhoneIphone as PhoneIcon,
+    Email as EmailIcon,
+    Lock as LockIcon,
+} from '@mui/icons-material';
 
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { OtpInput } from '@/components/auth/OtpInput';
 import Logo from '@/components/Logo';
 
@@ -25,6 +38,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
 
     // Step 2 State
     const [otpCode, setOtpCode] = useState('');
@@ -33,7 +47,7 @@ export default function RegisterPage() {
 
     useEffect(() => {
         if (user) {
-            router.push('/dashboard'); // or onboarding
+            router.push('/dashboard');
         }
     }, [user, router]);
 
@@ -49,9 +63,10 @@ export default function RegisterPage() {
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
 
         if (password !== confirmPassword) {
-            toast.error('Passwords do not match');
+            setError('Passwords do not match');
             return;
         }
 
@@ -65,16 +80,16 @@ export default function RegisterPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                toast.success(data.message || 'OTP sent to your mobile');
                 setStep(2);
                 setTimeLeft(30);
                 setCanResend(false);
+                setError('');
             } else {
-                toast.error(data.error || 'Registration failed');
+                setError(data.error || 'Registration failed');
+                setIsSubmitting(false);
             }
         } catch (error) {
-            toast.error('Network error during registration');
-        } finally {
+            setError('Network error during registration');
             setIsSubmitting(false);
         }
     };
@@ -82,6 +97,7 @@ export default function RegisterPage() {
     const handleVerifyOtp = async () => {
         if (otpCode.length !== 6) return;
 
+        setError('');
         setIsSubmitting(true);
         try {
             const res = await fetch('/api/auth/verify-register-otp', {
@@ -92,21 +108,21 @@ export default function RegisterPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                toast.success('Account created successfully!');
                 login(data.user);
                 // Redirect will be handled by the useEffect above
             } else {
-                toast.error(data.error || 'Invalid OTP');
+                setError(data.error || 'Invalid OTP');
+                setIsSubmitting(false);
             }
         } catch (error) {
-            toast.error('Network error verifying OTP');
-        } finally {
+            setError('Network error verifying OTP');
             setIsSubmitting(false);
         }
     };
 
     const handleResendOtp = async () => {
         setIsSubmitting(true);
+        setError('');
         try {
             const res = await fetch('/api/auth/send-otp', {
                 method: 'POST',
@@ -116,14 +132,13 @@ export default function RegisterPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                toast.success('OTP resent successfully');
                 setTimeLeft(30);
                 setCanResend(false);
             } else {
-                toast.error(data.error || 'Failed to resend OTP');
+                setError(data.error || 'Failed to resend OTP');
             }
         } catch (error) {
-            toast.error('Network error resending OTP');
+            setError('Network error resending OTP');
         } finally {
             setIsSubmitting(false);
         }
@@ -174,28 +189,32 @@ export default function RegisterPage() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="w-full max-w-md mx-auto z-10 relative"
             >
-                {/* Logo Area */}
-                <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                    <Link href="/" className="inline-block relative group">
-                        <Logo variant="dark" />
-                        <div className="absolute -inset-4 bg-blue-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    </Link>
-                    <h1 style={{ marginTop: '24px', fontSize: '30px', fontFamily: 'serif', color: '#111827', lineHeight: '1.2' }}>Create your account</h1>
-                    <p style={{ marginTop: '8px', color: '#6B7280', fontSize: '14px', fontWeight: 500 }}>Join ClaimNova for instant claim settlements</p>
-                </div>
-
-                {/* Glass Card */}
-                <div
-                    className="border border-[#CBD8EA]/60 shadow-[0_8px_40px_rgba(30,58,95,0.12)] relative"
-                    style={{
-                        background: 'rgba(255, 255, 255, 0.90)',
-                        backdropFilter: 'blur(24px)',
-                        WebkitBackdropFilter: 'blur(24px)',
-                        padding: '48px',
-                        borderRadius: '32px',
-                        overflow: 'hidden'
+                {/* Glass Card - Surveyor Style */}
+                <Paper
+                    sx={{
+                        p: 4.5,
+                        width: '100%',
+                        maxWidth: 480,
+                        borderRadius: '28px',
+                        boxShadow: '0 20px 40px rgba(30, 58, 95, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        bgcolor: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid rgba(255, 255, 255, 1)'
                     }}
                 >
+                    {/* Logo Area */}
+                    <Box sx={{ textAlign: 'center', marginBottom: '32px' }}>
+                        <Link href="/" className="inline-block relative group">
+                            <Logo variant="dark" />
+                            <div className="absolute -inset-4 bg-blue-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </Link>
+                        <Typography variant="h4" sx={{ marginTop: '20px', fontFamily: 'serif', color: '#111827', fontWeight: 600 }}>
+                            Create your account
+                        </Typography>
+                        <Typography sx={{ marginTop: '8px', color: '#6B7280', fontSize: '14px', fontWeight: 500 }}>
+                            Join ClaimNova for instant claim settlements
+                        </Typography>
+                    </Box>
 
                     {/* Multi-step progress indicator */}
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
@@ -212,118 +231,211 @@ export default function RegisterPage() {
                                 exit={{ opacity: 0, x: 20 }}
                                 transition={{ duration: 0.3 }}
                                 onSubmit={handleRegister}
-                                style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+                                aria-label="User registration form step 1"
+                                noValidate
                             >
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        <Label htmlFor="fullName">Full Name</Label>
-                                        <Input
-                                            id="fullName"
+                                <Stack spacing={3}>
+                                    {error && (
+                                        <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                                            {error}
+                                        </Alert>
+                                    )}
+
+                                    <TextField
+                                        fullWidth
+                                        label="Full Name"
+                                        id="fullName"
+                                        required
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        placeholder="Rahul Sharma"
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <PersonIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                height: '52px',
+                                                borderRadius: '14px',
+                                                backgroundColor: '#fff',
+                                                '& fieldset': { borderColor: '#E5E7EB' },
+                                                '&:hover fieldset': { borderColor: '#2563EB' },
+                                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                                            },
+                                        }}
+                                    />
+
+                                    <TextField
+                                        fullWidth
+                                        label="Mobile Number"
+                                        id="mobile"
+                                        type="tel"
+                                        required
+                                        value={mobile}
+                                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
+                                        placeholder="9876543210"
+                                        inputProps={{
+                                            pattern: '[0-9]{10}',
+                                            maxLength: 10,
+                                        }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <PhoneIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                                                </InputAdornment>
+                                            ),
+                                            prefix: '+91 ',
+                                        }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                height: '52px',
+                                                borderRadius: '14px',
+                                                backgroundColor: '#fff',
+                                                '& fieldset': { borderColor: '#E5E7EB' },
+                                                '&:hover fieldset': { borderColor: '#2563EB' },
+                                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                                            },
+                                        }}
+                                    />
+
+                                    <TextField
+                                        fullWidth
+                                        label="Email (Optional)"
+                                        id="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="rahul@example.com"
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <EmailIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                height: '52px',
+                                                borderRadius: '14px',
+                                                backgroundColor: '#fff',
+                                                '& fieldset': { borderColor: '#E5E7EB' },
+                                                '&:hover fieldset': { borderColor: '#2563EB' },
+                                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                                            },
+                                        }}
+                                    />
+
+                                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                                        <TextField
+                                            fullWidth
+                                            label="Password"
+                                            id="password"
+                                            type="password"
                                             required
-                                            value={fullName}
-                                            onChange={(e) => setFullName(e.target.value)}
-                                            placeholder="Rahul Sharma"
-                                            className="border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all rounded-xl"
-                                            style={{ height: '52px' }}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            inputProps={{
+                                                minLength: 8,
+                                            }}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <LockIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    height: '52px',
+                                                    borderRadius: '14px',
+                                                    backgroundColor: '#fff',
+                                                    '& fieldset': { borderColor: '#E5E7EB' },
+                                                    '&:hover fieldset': { borderColor: '#2563EB' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                                                },
+                                            }}
                                         />
-                                    </div>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        <Label htmlFor="mobile">Mobile Number</Label>
-                                        <div style={{ position: 'relative' }}>
-                                            <div style={{
-                                                position: 'absolute',
-                                                left: 0,
-                                                top: 0,
-                                                bottom: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                padding: '0 16px',
-                                                fontWeight: 500,
-                                                color: '#6B7280',
-                                                backgroundColor: 'rgba(249, 250, 251, 0.5)',
-                                                borderRight: '1px solid #E5E7EB',
-                                                borderTopLeftRadius: '12px',
-                                                borderBottomLeftRadius: '12px',
-                                                zIndex: 10
-                                            }}>
-                                                +91
-                                            </div>
-                                            <Input
-                                                id="mobile"
-                                                type="tel"
-                                                required
-                                                pattern="[0-9]{10}"
-                                                maxLength={10}
-                                                value={mobile}
-                                                onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
-                                                placeholder="9876543210"
-                                                className="border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all rounded-xl"
-                                                style={{ height: '52px', paddingLeft: '72px' }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        <Label htmlFor="email">Email <span style={{ color: '#9CA3AF', fontWeight: 'normal' }}>(Optional)</span></Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="rahul@example.com"
-                                            className="border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all rounded-xl"
-                                            style={{ height: '52px' }}
+                                        <TextField
+                                            fullWidth
+                                            label="Confirm"
+                                            id="confirmPassword"
+                                            type="password"
+                                            required
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            error={!!(confirmPassword && password !== confirmPassword)}
+                                            inputProps={{
+                                                minLength: 8,
+                                            }}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <LockIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    height: '52px',
+                                                    borderRadius: '14px',
+                                                    backgroundColor: '#fff',
+                                                    '& fieldset': { borderColor: '#E5E7EB' },
+                                                    '&:hover fieldset': { borderColor: '#2563EB' },
+                                                    '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                                                    '&.Mui-error fieldset': { borderColor: '#EF4444' },
+                                                },
+                                            }}
                                         />
-                                    </div>
+                                    </Box>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <Label htmlFor="password">Password</Label>
-                                            <Input
-                                                id="password"
-                                                type="password"
-                                                required
-                                                minLength={8}
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                className="border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all rounded-xl"
-                                                style={{ height: '52px' }}
-                                            />
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <Label htmlFor="confirmPassword">Confirm</Label>
-                                            <Input
-                                                id="confirmPassword"
-                                                type="password"
-                                                required
-                                                minLength={8}
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                className={`border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all rounded-xl ${confirmPassword && password !== confirmPassword ? 'border-red-400' : ''}`}
-                                                style={{ height: '52px' }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                                    {confirmPassword && password !== confirmPassword && (
+                                        <Typography sx={{ color: '#DC2626', fontSize: '14px', fontWeight: 500 }}>
+                                            Passwords do not match
+                                        </Typography>
+                                    )}
 
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting || password !== confirmPassword || mobile.length !== 10}
-                                    className="w-full text-white font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all"
-                                    style={{ height: '52px', border: 'none' }}
-                                >
-                                    {isSubmitting ? 'Sending OTP...' : 'Send OTP & Continue'}
-                                </Button>
+                                    <MuiButton
+                                        type="submit"
+                                        fullWidth
+                                        variant="contained"
+                                        disabled={isSubmitting || password !== confirmPassword || mobile.length !== 10}
+                                        sx={{
+                                            height: '52px',
+                                            backgroundColor: '#2563EB',
+                                            color: '#fff',
+                                            fontSize: '16px',
+                                            fontWeight: 700,
+                                            borderRadius: '14px',
+                                            textTransform: 'none',
+                                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                                            '&:hover': {
+                                                backgroundColor: '#1D4ED8',
+                                            },
+                                            '&:disabled': {
+                                                backgroundColor: '#D1D5DB',
+                                                color: '#fff',
+                                            },
+                                        }}
+                                    >
+                                        {isSubmitting ? (
+                                            <CircularProgress size={24} sx={{ color: 'inherit' }} />
+                                        ) : (
+                                            'Send OTP & Continue'
+                                        )}
+                                    </MuiButton>
 
-                                <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                                    <p style={{ fontSize: '14px', color: '#6B7280' }}>
-                                        Already have an account?{' '}
-                                        <Link href="/login" style={{ color: '#2563EB', fontWeight: 600 }}>
-                                            Login here
-                                        </Link>
-                                    </p>
-                                </div>
+                                    <Box sx={{ textAlign: 'center' }}>
+                                        <Typography sx={{ fontSize: '14px', color: '#6B7280' }}>
+                                            Already have an account?{' '}
+                                            <Link href="/login" style={{ color: '#2563EB', fontWeight: 600, textDecoration: 'none' }}>
+                                                Login here
+                                            </Link>
+                                        </Typography>
+                                    </Box>
+                                </Stack>
                             </motion.form>
                         ) : (
                             <motion.div
@@ -332,64 +444,118 @@ export default function RegisterPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
-                                className="space-y-8"
-                                style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}
                             >
-                                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#111827' }}>Verify your mobile</h2>
-                                    <p style={{ color: '#6B7280', fontSize: '14px' }}>
-                                        We sent a 6-digit code to <span style={{ fontWeight: 600, color: '#374151' }}>+91 *****{mobile.slice(-4)}</span>
-                                    </p>
-                                    <button
-                                        onClick={() => setStep(1)}
-                                        style={{ fontSize: '12px', color: '#2563EB', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                                    >
-                                        Wrong number? Edit
-                                    </button>
-                                </div>
+                                <Stack spacing={3}>
+                                    <Box sx={{ textAlign: 'center' }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827', mb: 1 }}>
+                                            Verify your mobile
+                                        </Typography>
+                                        <Typography sx={{ color: '#6B7280', fontSize: '14px' }}>
+                                            We sent a 6-digit code to <span style={{ fontWeight: 600, color: '#374151' }}>+91 *****{mobile.slice(-4)}</span>
+                                        </Typography>
+                                        <MuiButton
+                                            onClick={() => setStep(1)}
+                                            sx={{
+                                                mt: 1,
+                                                fontSize: '12px',
+                                                color: '#2563EB',
+                                                fontWeight: 500,
+                                                textTransform: 'none',
+                                                '&:hover': {
+                                                    background: 'transparent',
+                                                    textDecoration: 'underline',
+                                                },
+                                            }}
+                                        >
+                                            Wrong number? Edit
+                                        </MuiButton>
+                                    </Box>
 
-                                <div className="py-4">
-                                    <OtpInput
-                                        length={6}
-                                        onComplete={(code) => {
-                                            setOtpCode(code);
-                                            // Optional UX enhancement: Automatically submit here
-                                        }}
-                                        onChange={setOtpCode}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
+                                    {error && (
+                                        <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                                            {error}
+                                        </Alert>
+                                    )}
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    <Button
+                                    <Box sx={{ py: 2 }}>
+                                        <label htmlFor="otpInput" className="sr-only">Enter 6-digit OTP code</label>
+                                        <OtpInput
+                                            length={6}
+                                            onComplete={(code) => {
+                                                setOtpCode(code);
+                                            }}
+                                            onChange={setOtpCode}
+                                            disabled={isSubmitting}
+                                        />
+                                        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#6B7280', textAlign: 'center' }}>
+                                            Enter the 6-digit code sent to your phone
+                                        </Typography>
+                                    </Box>
+
+                                    <MuiButton
                                         onClick={handleVerifyOtp}
+                                        fullWidth
+                                        variant="contained"
                                         disabled={isSubmitting || otpCode.length !== 6}
-                                        className="w-full text-white font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all"
-                                        style={{ height: '52px', border: 'none' }}
+                                        sx={{
+                                            height: '52px',
+                                            backgroundColor: '#2563EB',
+                                            color: '#fff',
+                                            fontSize: '16px',
+                                            fontWeight: 700,
+                                            borderRadius: '14px',
+                                            textTransform: 'none',
+                                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                                            '&:hover': {
+                                                backgroundColor: '#1D4ED8',
+                                            },
+                                            '&:disabled': {
+                                                backgroundColor: '#D1D5DB',
+                                                color: '#fff',
+                                            },
+                                        }}
                                     >
-                                        {isSubmitting ? 'Verifying...' : 'Verify & Create Account'}
-                                    </Button>
-
-                                    <div className="text-center">
-                                        {timeLeft > 0 ? (
-                                            <p className="text-sm text-gray-500">
-                                                Resend code in <span className="font-medium text-gray-700 text-mono">00:{timeLeft.toString().padStart(2, '0')}</span>
-                                            </p>
+                                        {isSubmitting ? (
+                                            <CircularProgress size={24} sx={{ color: 'inherit' }} />
                                         ) : (
-                                            <button
+                                            'Verify & Create Account'
+                                        )}
+                                    </MuiButton>
+
+                                    <Box sx={{ textAlign: 'center' }}>
+                                        {timeLeft > 0 ? (
+                                            <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                                                Resend code in{' '}
+                                                <span style={{ fontWeight: 600, color: '#374151', fontFamily: 'monospace' }}>
+                                                    00:{timeLeft.toString().padStart(2, '0')}
+                                                </span>
+                                            </Typography>
+                                        ) : (
+                                            <MuiButton
                                                 onClick={handleResendOtp}
                                                 disabled={!canResend || isSubmitting}
-                                                className="text-sm text-blue-600 font-semibold hover:text-blue-700 transition-colors disabled:opacity-50"
+                                                sx={{
+                                                    fontSize: '14px',
+                                                    color: '#2563EB',
+                                                    fontWeight: 600,
+                                                    textTransform: 'none',
+                                                    '&:hover': {
+                                                        color: '#1D4ED8',
+                                                    },
+                                                    '&:disabled': {
+                                                        color: '#D1D5DB',
+                                                    },
+                                                }}
                                             >
                                                 Resend OTP
-                                            </button>
+                                            </MuiButton>
                                         )}
-                                    </div>
-                                </div>
+                                    </Box>
+                                </Stack>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div>
+                </Paper>
             </motion.div>
         </div>
     );
