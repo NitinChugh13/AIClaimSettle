@@ -73,7 +73,7 @@ export function OtpInput({ length = 6, onComplete, onChange, disabled = false, e
     };
 
     return (
-        <div className="flex justify-between gap-2 max-w-sm mx-auto">
+        <div className="flex justify-center gap-1 sm:gap-2 md:gap-3 max-w-full px-2 mx-auto flex-wrap">
             {otp.map((digit, index) => (
                 <motion.div
                     key={index}
@@ -93,7 +93,7 @@ export function OtpInput({ length = 6, onComplete, onChange, disabled = false, e
                         onPaste={handlePaste}
                         disabled={disabled}
                         className={cn(
-                            "w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-semibold bg-white border-2 rounded-md transition-all duration-200 outline-none",
+                            "w-10 h-12 sm:w-12 sm:h-14 md:w-14 md:h-16 text-center text-lg sm:text-xl md:text-2xl font-semibold bg-white border-2 rounded-md transition-all duration-200 outline-none",
                             error
                                 ? "border-red-500 bg-red-50 text-red-700 shake-animation"
                                 : digit

@@ -147,15 +147,16 @@ const themeOptions: ThemeOptions = {
             },
         },
         MuiAppBar: {
-            styleOverrides: {
-                root: {
-                    backgroundColor: '#FFFFFF',
-                    color: '#111827',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                    borderBottom: '1px solid #E5E7EB',
-                },
-            },
-        },
+  styleOverrides: {
+    root: {
+      backgroundColor: 'transparent',
+      backgroundImage: 'none',
+      color: '#111827',
+      boxShadow: 'none',
+      borderBottom: 'none',
+    },
+  },
+},
         MuiChip: {
             styleOverrides: {
                 root: {

@@ -19,23 +19,6 @@ import { Menu as MenuIcon } from '@mui/icons-material';
 import Logo from '@/components/Logo';
 import { useAuth } from '@/context/AuthContext';
 
-function ElevationScroll(props: { children: React.ReactElement }) {
-  const { children } = props;
-  const trigger = useScrollTrigger({ disableHysteresis: true, threshold: 50 });
-
-  return React.cloneElement(children as React.ReactElement<any>, {
-    elevation: trigger ? 2 : 0,
-    sx: {
-      bgcolor: 'rgba(236, 243, 252, 0.94)',
-      backdropFilter: trigger ? 'blur(12px)' : 'none',
-      color: '#1A2B3C',
-      borderBottom: '1px solid #D1DEEF',
-      boxShadow: trigger ? '0 2px 12px rgba(30, 58, 95, 0.08)' : '0 1px 0 #CBD8EA',
-      transition: 'all 0.3s ease-in-out',
-    },
-  });
-}
-
 const links = [
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'Features', href: '/#features' },
@@ -47,6 +30,7 @@ export default function MarketingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, logout, loading } = useAuth(); // ← loading added
   const [mounted, setMounted] = useState(false);
+  const trigger = useScrollTrigger({ disableHysteresis: true, threshold: 50 });
 
   useEffect(() => {
     setMounted(true);
@@ -55,12 +39,25 @@ export default function MarketingHeader() {
 
   return (
     <>
-      <ElevationScroll>
-        <AppBar position="fixed" color="transparent" elevation={0}>
+      <AppBar 
+        position="fixed" 
+        elevation={0}
+        sx={{
+          background: trigger
+            ? 'linear-gradient(135deg, rgba(71, 125, 195, 0.95) 0%, rgba(100, 150, 220, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(78, 140, 215, 0.95) 0%, rgba(120, 165, 240, 0.9) 100%)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.25)',
+          boxShadow: trigger 
+            ? '0 8px 32px rgba(60, 100, 180, 0.25)' 
+            : '0 4px 20px rgba(60, 100, 180, 0.15)',
+          transition: 'all 0.3s ease-in-out',
+        }}>
           <Toolbar sx={{ justifyContent: 'space-between', minHeight: { xs: 64, md: 72 } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Link href="/" style={{ display: 'inline-flex', textDecoration: 'none' }}>
-                <Logo variant="dark" />
+                <Logo variant="light" />
               </Link>
             </Box>
 
@@ -70,7 +67,17 @@ export default function MarketingHeader() {
                   key={item.label}
                   component={Link}
                   href={item.href}
-                  sx={{ fontWeight: 600, color: '#4A6080', '&:hover': { color: '#2D5F9E', bgcolor: 'rgba(45, 95, 158, 0.05)' } }}
+                  sx={{
+                    fontWeight: 600,
+                    color: 'rgba(255, 255, 255, 0.95)',
+                    fontSize: '0.95rem',
+                    textTransform: 'none',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.15)',
+                      color: '#FFFFFF',
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
                 >
                   {item.label}
                 </Button>
@@ -84,13 +91,20 @@ export default function MarketingHeader() {
                 <>
                   {user ? (
                     <>
-                      <Box sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 600, color: '#4A6080' }}>
+                      <Box sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 600, color: 'rgba(255, 255, 255, 0.95)', fontSize: '0.95rem' }}>
                         👋 {user.full_name}
                       </Box>
                       <Button
                         component={Link}
                         href="/dashboard"
-                        sx={{ display: { xs: 'none', sm: 'flex' }, fontWeight: 600, color: '#2D5F9E' }}
+                        sx={{
+                          display: { xs: 'none', sm: 'flex' },
+                          fontWeight: 600,
+                          color: 'rgba(255, 255, 255, 0.95)',
+                          fontSize: '0.95rem',
+                          textTransform: 'none',
+                          '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' },
+                        }}
                       >
                         My Dashboard
                       </Button>
@@ -99,8 +113,10 @@ export default function MarketingHeader() {
                         sx={{
                           display: { xs: 'none', sm: 'flex' },
                           fontWeight: 600,
-                          color: '#D64045',
-                          '&:hover': { bgcolor: 'rgba(214, 64, 69, 0.05)' }
+                          color: 'rgba(255, 255, 255, 0.95)',
+                          fontSize: '0.95rem',
+                          textTransform: 'none',
+                          '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' },
                         }}
                       >
                         Logout
@@ -111,7 +127,14 @@ export default function MarketingHeader() {
                       <Button
                         component={Link}
                         href="/login"
-                        sx={{ display: { xs: 'none', sm: 'flex' }, fontWeight: 600, color: '#4A6080' }}
+                        sx={{
+                          display: { xs: 'none', sm: 'flex' },
+                          fontWeight: 600,
+                          color: 'rgba(255, 255, 255, 0.95)',
+                          fontSize: '0.95rem',
+                          textTransform: 'none',
+                          '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' },
+                        }}
                       >
                         Login
                       </Button>
@@ -121,11 +144,16 @@ export default function MarketingHeader() {
                         sx={{
                           display: { xs: 'none', sm: 'flex' },
                           fontWeight: 700,
-                          color: '#2D5F9E',
-                          border: '1.5px solid #2D5F9E',
+                          color: '#FFFFFF',
+                          fontSize: '0.95rem',
+                          textTransform: 'none',
+                          border: '1.5px solid rgba(255, 255, 255, 0.8)',
                           borderRadius: '8px',
                           px: 2,
-                          '&:hover': { bgcolor: 'rgba(45, 95, 158, 0.05)' }
+                          '&:hover': {
+                            bgcolor: 'rgba(255, 255, 255, 0.15)',
+                            borderColor: '#FFFFFF',
+                          },
                         }}
                       >
                         Register
@@ -141,21 +169,30 @@ export default function MarketingHeader() {
                 variant="contained"
                 sx={{
                   fontWeight: 700,
-                  borderRadius: '10px',
+                  borderRadius: '8px',
                   px: { xs: 2.2, md: 3 },
                   py: 1.1,
-                  background: 'linear-gradient(135deg, #1E3A5F, #2D5F9E)',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  color: '#2563EB',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  '&:hover': {
+                    background: '#FFFFFF',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                  },
                 }}
               >
-                ⚡ Nova Strike
+                <svg width={16} height={16} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '4px', display: 'inline-block' }}>
+                  <path d="M22 6L10 20H18L10 30L22 16H14L22 6Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Nova Strike
               </Button>
-              <IconButton onClick={() => setMobileOpen(true)} sx={{ display: { md: 'none' }, color: '#4A6080' }}>
+              <IconButton onClick={() => setMobileOpen(true)} sx={{ display: { md: 'none' }, color: '#FFFFFF' }}>
                 <MenuIcon />
               </IconButton>
             </Box>
           </Toolbar>
         </AppBar>
-      </ElevationScroll>
 
       {/* Mobile Drawer */}
       <Drawer
@@ -163,19 +200,41 @@ export default function MarketingHeader() {
         onClose={() => setMobileOpen(false)}
         sx={{
           display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': { width: 260, bgcolor: '#EEF4FC', borderRight: '1px solid #CBD8EA' },
+          '& .MuiDrawer-paper': {
+            width: 260,
+            background: 'linear-gradient(135deg, rgba(71, 125, 195, 0.95) 0%, rgba(100, 150, 220, 0.9) 100%)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.25)',
+          },
         }}
       >
-        <Box sx={{ p: 3, borderBottom: '1px solid #CBD8EA' }}>
+        <Box sx={{ p: 3, borderBottom: '1px solid rgba(255, 255, 255, 0.25)' }}>
           <Link href="/" style={{ display: 'inline-flex', textDecoration: 'none' }}>
-            <Logo variant="dark" />
+            <Logo variant="light" />
           </Link>
         </Box>
         <List sx={{ px: 1, py: 2 }}>
           {links.map((item) => (
             <ListItem key={item.label} disablePadding>
-              <ListItemButton component={Link} href={item.href} onClick={() => setMobileOpen(false)}>
-                <ListItemText primary={item.label} slotProps={{ primary: { fontWeight: 600, fontSize: 14 } }} />
+              <ListItemButton
+                component={Link}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                sx={{
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' },
+                }}
+              >
+                <ListItemText
+                  primary={item.label}
+                  slotProps={{
+                    primary: {
+                      fontWeight: 600,
+                      fontSize: 14,
+                      color: 'rgba(255, 255, 255, 0.95)',
+                    },
+                  }}
+                />
               </ListItemButton>
             </ListItem>
           ))}

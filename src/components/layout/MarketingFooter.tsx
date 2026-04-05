@@ -31,7 +31,12 @@ export default function MarketingFooter() {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 700, mb: 3, letterSpacing: 0.3 }}>Quick Links</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Link href="/claim/new" style={{ color: 'rgba(210, 223, 246, 0.82)', textDecoration: 'none', fontSize: '0.9rem' }}>⚡ Nova Strike</Link>
+              <Link href="/claim/new" style={{ color: 'rgba(210, 223, 246, 0.82)', textDecoration: 'none', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <svg width={14} height={14} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22 6L10 20H18L10 30L22 16H14L22 6Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Nova Strike
+              </Link>
               <Link href="/dashboard" style={{ color: 'rgba(210, 223, 246, 0.82)', textDecoration: 'none', fontSize: '0.9rem' }}>My Dashboard</Link>
               <Link href="/#how-it-works" style={{ color: 'rgba(210, 223, 246, 0.82)', textDecoration: 'none', fontSize: '0.9rem' }}>How It Works</Link>
             </Box>

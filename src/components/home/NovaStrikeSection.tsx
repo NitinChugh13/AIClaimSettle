@@ -222,7 +222,10 @@ const SpeedRace = () => {
                 <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
                         <Typography variant="subtitle2" sx={{ color: '#3B82F6', display: 'flex', alignItems: 'center', gap: 1 }}>
-                            ⚡ Nova Strike by ClaimNova
+                            <svg width={16} height={16} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M22 6L10 20H18L10 30L22 16H14L22 6Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Nova Strike by ClaimNova
                         </Typography>
                         {isInView && (
                             <Typography variant="caption" sx={{ color: '#3B82F6', fontFamily: 'monospace', fontWeight: 'bold' }}>

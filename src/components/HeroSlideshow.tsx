@@ -112,7 +112,7 @@ export default function HeroSlideshow() {
                                 exit: { opacity: 0 }
                             }}>
                                 <motion.div variants={{ initial: { y: -20, opacity: 0 }, animate: { y: 0, opacity: 1 } }}>
-                                    <Chip label={slide.badge} variant="outlined" sx={{ borderColor: 'info.main', color: 'info.main', mb: 3, fontWeight: 'bold', boxShadow: '0 0 10px rgba(6, 182, 212, 0.4)', maxWidth: '100%', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block' } }} icon={<Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'info.main', ml: 1, animation: 'pulse-ring 2s infinite' }} />} />
+                                    <Chip label={slide.badge} variant="outlined" sx={{ borderColor: 'info.main', color: 'info.main', mb: { xs: 2, md: 3 }, fontWeight: 'bold', boxShadow: '0 0 10px rgba(6, 182, 212, 0.4)', maxWidth: '100%', fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' }, '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', px: { xs: 1, md: 1.5 } } }} icon={<Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'info.main', ml: 1, animation: 'pulse-ring 2s infinite' }} />} />
                                 </motion.div>
 
                                 <motion.div variants={textVariants}>
@@ -136,18 +136,21 @@ export default function HeroSlideshow() {
                                 </motion.div>
 
                                 <motion.div variants={textVariants} transition={{ delay: 0.7 }}>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 4 }}>
-                                        <Button component={Link} href="/claim/new" variant="contained" color="primary" size="large" endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' }, px: 4, py: 1.5, fontSize: { xs: '1rem', md: '1.1rem' }, fontWeight: 700, borderRadius: 2.5, boxShadow: '0 8px 24px rgba(59, 130, 246, 0.35)', background: 'linear-gradient(135deg, #1D4ED8, #3B82F6)', '&:hover': { boxShadow: '0 12px 30px rgba(59, 130, 246, 0.5)', background: 'linear-gradient(135deg, #2563EB, #60A5FA)' } }}>
-                                            ⚡ Launch Nova Strike
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2 }, mb: 4 }}>
+                                        <Button component={Link} href="/claim/new" variant="contained" color="primary" size="large" sx={{ flex: { xs: '1 1 100%', sm: '0 1 auto' }, px: { xs: 3, md: 4 }, py: { xs: 1.25, md: 1.5 }, fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' }, fontWeight: 700, borderRadius: 2.5, boxShadow: '0 8px 24px rgba(59, 130, 246, 0.35)', background: 'linear-gradient(135deg, #1D4ED8, #3B82F6)', '&:hover': { boxShadow: '0 12px 30px rgba(59, 130, 246, 0.5)', background: 'linear-gradient(135deg, #2563EB, #60A5FA)' }, display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 1 } }}>
+                                            <svg width={16} height={16} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ minWidth: '16px' }}>
+                                              <path d="M22 6L10 20H18L10 30L22 16H14L22 6Z" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                            <span style={{ whiteSpace: 'nowrap' }}>Launch Nova Strike</span>
                                         </Button>
-                                        <Button component={Link} href="/claim/track" variant="outlined" size="large" sx={{ width: { xs: '100%', sm: 'auto' }, color: 'white', borderColor: 'rgba(255,255,255,0.55)', px: 4, py: 1.5, fontSize: { xs: '1rem', md: '1.1rem' }, fontWeight: 600, borderRadius: 2.5, '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}>
-                                            📡 Track My Claim
+                                        <Button component={Link} href="/claim/track" variant="outlined" size="large" sx={{ flex: { xs: '1 1 100%', sm: '0 1 auto' }, color: 'white', borderColor: 'rgba(255,255,255,0.55)', px: { xs: 3, md: 4 }, py: { xs: 1.25, md: 1.5 }, fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' }, fontWeight: 600, borderRadius: 2.5, '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}>
+                                            📡 <span style={{ whiteSpace: 'nowrap' }}>Track My Claim</span>
                                         </Button>
                                     </Box>
                                 </motion.div>
 
                                 <motion.div variants={textVariants} transition={{ delay: 0.9 }}>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25 }}>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 0.75, sm: 1, md: 1.25 } }}>
                                         {heroProofs.map((proof) => (
                                             <Chip
                                                 key={proof}
@@ -159,8 +162,9 @@ export default function HeroSlideshow() {
                                                     bgcolor: 'rgba(15, 23, 42, 0.35)',
                                                     backdropFilter: 'blur(6px)',
                                                     fontWeight: 600,
+                                                    fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
                                                     letterSpacing: 0.1,
-                                                    '& .MuiChip-label': { px: 1.25 }
+                                                    '& .MuiChip-label': { px: { xs: 0.75, sm: 1, md: 1.25 } }
                                                 }}
                                             />
                                         ))}
@@ -173,14 +177,14 @@ export default function HeroSlideshow() {
             </Container>
 
             {/* Slide Indicators */}
-            <Box sx={{ position: 'absolute', bottom: 32, left: 0, right: 0, zIndex: 30, display: 'flex', justifyContent: 'center', gap: 2 }}>
+            <Box sx={{ position: 'absolute', bottom: { xs: 16, sm: 24, md: 32 }, left: 0, right: 0, zIndex: 30, display: 'flex', justifyContent: 'center', gap: { xs: 1, sm: 1.5, md: 2 } }}>
                 {slides.map((s, i) => (
                     <Box
                         key={s.id}
                         onClick={() => setCurrent(i)}
                         sx={{
-                            width: current === i ? 32 : 12,
-                            height: 12,
+                            width: current === i ? { xs: 24, md: 32 } : { xs: 8, md: 12 },
+                            height: { xs: 8, md: 12 },
                             borderRadius: 6,
                             bgcolor: current === i ? 'primary.main' : 'rgba(255,255,255,0.3)',
                             cursor: 'pointer',
