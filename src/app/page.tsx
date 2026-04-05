@@ -168,16 +168,19 @@ const TestimonialCardComponent = ({ testimonial }: { testimonial: typeof testimo
     border: '1px solid #CBD8EA',
     borderRadius: { xs: '12px', sm: '16px' },
     p: { xs: 2, sm: 2.5, md: 3 },
-    flexShrink: 0,
-    minWidth: { xs: 'calc(100vw - 32px)', sm: '360px', md: '420px', lg: '450px' },
     boxShadow: '0 2px 12px rgba(30,58,95,0.06)',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
   }}>
     <Box sx={{
       display: 'flex',
       flexDirection: { xs: 'column', sm: 'row' },
       alignItems: { xs: 'flex-start', sm: 'center' },
-      gap: { xs: 1, sm: 1.5 },
-      mb: 2
+      gap: { xs: 0.75, sm: 1.5 },
+      mb: 2,
+      minWidth: 0,
     }}>
       <Box sx={{
         width: { xs: 32, sm: 40, md: 44 },
@@ -216,6 +219,7 @@ const TestimonialCardComponent = ({ testimonial }: { testimonial: typeof testimo
         textAlign: { xs: 'left', sm: 'right' },
         flexShrink: 0,
         alignSelf: { xs: 'flex-start', sm: 'center' },
+        whiteSpace: 'nowrap',
       }}>
         <Typography sx={{
           color: '#2D5F9E',
@@ -242,7 +246,13 @@ const TestimonialCardComponent = ({ testimonial }: { testimonial: typeof testimo
     <Typography sx={{
       color: '#4A6080',
       fontSize: { xs: '12px', sm: '13px', md: '14px' },
-      lineHeight: 1.6,
+      lineHeight: 1.5,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      display: '-webkit-box',
+      WebkitLineClamp: 3,
+      WebkitBoxOrient: 'vertical',
+      flex: 1,
     }}>
       "{testimonial.quote}"
     </Typography>
@@ -2358,9 +2368,9 @@ export default function HomePage() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 3,
-              height: 600,
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+              gap: { xs: 1.5, sm: 2, md: 3 },
+              height: { xs: '400px', sm: '500px', md: '600px' },
               overflow: 'hidden',
               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
               maskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
@@ -2376,7 +2386,7 @@ export default function HomePage() {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 2,
+                  gap: { xs: 1.5, sm: 2, md: 2 },
                   animation: 'scrollUp1 40s linear infinite',
                 }}
               >
@@ -2400,7 +2410,7 @@ export default function HomePage() {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 2,
+                  gap: { xs: 1.5, sm: 2, md: 2 },
                   animation: 'scrollUp2 30s linear infinite',
                 }}
               >
@@ -2424,7 +2434,7 @@ export default function HomePage() {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 2,
+                  gap: { xs: 1.5, sm: 2, md: 2 },
                   animation: 'scrollUp3 50s linear infinite',
                 }}
               >
