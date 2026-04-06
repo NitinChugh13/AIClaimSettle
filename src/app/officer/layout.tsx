@@ -80,6 +80,7 @@ export default function OfficerLayout({ children }: { children: React.ReactNode 
 
                             {/* Search */}
                             <TextField
+                                id="global-search-field"
                                 size="small"
                                 placeholder="Global Command Search..."
                                 sx={{

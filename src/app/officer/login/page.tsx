@@ -97,6 +97,7 @@ export default function OfficerLoginPage() {
                     <form onSubmit={handleLogin}>
                         <Stack spacing={2.5}>
                             <TextField
+                                id="officer-email-field"
                                 fullWidth
                                 label="Officer Email"
                                 type="email"
@@ -108,6 +109,7 @@ export default function OfficerLoginPage() {
                                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
                             />
                             <TextField
+                                id="officer-password-field"
                                 fullWidth
                                 label="Security Password"
                                 type="password"
