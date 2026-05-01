@@ -309,7 +309,7 @@ Database + Notifications
 📄 [View Detailed Architecture Documentation](docs/ARCHITECTURE.md)
 
 ## Architecture Diagram
-![ClaimNova Architecture](docs/architecture/architecture-overview.png)
+![ClaimNova Architecture](docs/architechture/architecture-overview.png)
 
 ---
 
