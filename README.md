@@ -1,158 +1,524 @@
-# 🚗 ClaimSettle AI  
-### Instant Motor Insurance Claims Powered by AI  
+# 🚗 ClaimNova — Agentic Motor Claims Processing System
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-00C853?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-claims-settle.vercel.app/)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=nextdotjs)]
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)]
-[![AI Powered](https://img.shields.io/badge/AI-Gemini%20%7C%20Claude-blueviolet?style=for-the-badge)]
+### *Powering ClaimSettle AI — Intelligent, Explainable & Configurable Motor Insurance Automation*
 
-> **Developed by Nitin Chugh**  
-> Transforming motor insurance claims using AI-driven automation.
+[![Live Demo](https://img.shields.io/badge/Live-Demo-00C853?style=for-the-badge\&logo=vercel\&logoColor=white)](https://ai-claims-settle.vercel.app/)
+[![Framework](https://img.shields.io/badge/Framework-Next.js-black?style=for-the-badge\&logo=nextdotjs)]
+[![Database](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge\&logo=supabase)]
+[![ORM](https://img.shields.io/badge/ORM-Drizzle-blue?style=for-the-badge)]
+[![AI](https://img.shields.io/badge/AI-Groq%20%7C%20Gemini-purple?style=for-the-badge)]
+[![Architecture](https://img.shields.io/badge/Architecture-Agentic%20AI-orange?style=for-the-badge)]
+[![Testing](https://img.shields.io/badge/Testing-Vitest-green?style=for-the-badge)]
 
----
-
-## 🌐 Live Application
-
-🔗 **Try it here:**  
-👉 https://ai-claims-settle.vercel.app/
-
-Experience real-time AI-powered motor damage assessment and instant claim simulation.
+> **ClaimSettle AI** is a full-stack intelligent insurance claims platform powered by **ClaimNova**, a configurable multi-step reasoning engine designed for motor insurance damage assessment, fraud analysis, and IRDAI-compliant settlement automation.
 
 ---
 
-## 🎯 Vision
+# 🌐 Live Demo
 
-ClaimSettle AI reimagines the traditional motor insurance claim process by reducing manual intervention, eliminating delays, and providing instant AI-powered cost estimation using real-world IRDAI standards.
+**Application:** https://ai-claims-settle.vercel.app/
 
-The platform enables:
-- ⚡ 15-minute claim approvals
-- 🤖 AI-based damage assessment
-- 🔍 Fraud detection via metadata analysis
-- 📊 Real-time dashboard for officers
+Experience:
 
----
-
-## 🚀 Key Features
-
-### 📸 Photo-Based AI Damage Assessment
-Upload vehicle damage images and receive an instant repair cost breakdown using advanced AI vision models.
-
-### 🧾 IRDAI-Compliant Estimation Engine
-- OEM part price mapping  
-- City-tier labor cost calculation  
-- Depreciation logic  
-- Insurance rule-based validation  
-
-### 🛡 Fraud Detection System
-- EXIF metadata extraction  
-- Image tampering detection  
-- AI-based damage consistency validation  
-- Automatic manual review flagging  
-
-### 👤 Secure Claimant Dashboard
-Users log in using Policy Number to:
-- Track claim status  
-- View previous claims  
-- Download assessment reports  
-
-### 🧑‍💼 Live Officer Queue (Real-Time)
-- Synced dashboard powered by Supabase  
-- AI recommendations + manual override  
-- Approve / Reject / Escalate workflow  
-
-### 🎭 Demo Mode Fallback
-If external AI APIs fail, the app auto-generates realistic mock responses to ensure uninterrupted demo experience.
+* AI-driven vehicle damage assessment
+* Explainable claim processing
+* Fraud detection pipeline
+* Automated settlement recommendation
+* Multi-role workflow (Claimant / Officer / Surveyor / Admin)
 
 ---
 
-## 🧠 How It Works
+# Executive Summary
 
-1. User uploads damage photos  
-2. AI model (Gemini / Claude) analyzes visual damage  
-3. Backend applies IRDAI logic engine  
-4. Fraud detection checks image metadata  
-5. Instant cost estimate generated  
-6. Officer dashboard receives claim for approval  
+ClaimNova is an **Agentic AI claims processing engine** engineered for the Indian motor insurance ecosystem.
 
----
+Unlike conventional prompt-response AI systems, ClaimNova follows a structured reasoning workflow:
 
-## 🛠 Tech Stack
+```text
+Goal → Think → Select Tool → Execute → Observe → Continue → Final Decision
+```
 
-### Frontend
-- Next.js 14 (App Router)
-- React
-- Tailwind CSS
-- Material UI (MUI)
-- Shadcn UI
-- Framer Motion
+This architecture enables:
 
-### Backend
-- Next.js Serverless API Routes
-- Drizzle ORM
+* explainable decisions
+* deterministic execution
+* configurable operational rules
+* fraud-aware approvals
+* IRDAI-compliant settlement computation
+* production-ready workflow orchestration
 
-### Database
-- PostgreSQL (Supabase)
-
-### AI Integration
-- Google Gemini 1.5 Flash
-- Anthropic Claude 3
-
-### Data Visualization
-- Recharts
+ClaimNova powers **ClaimSettle AI**, the customer-facing claims processing platform.
 
 ---
 
-## 📦 Installation & Setup
+# Problem Statement
 
-### Prerequisites
-- Node.js (v18+ recommended)
-- Supabase Account
-- Google AI Studio API Key
+Traditional motor insurance claims are:
+
+* slow
+* manual
+* inconsistent
+* fraud-prone
+* expensive to process
+* difficult to audit
+
+ClaimNova solves this by automating:
+
+✔ damage understanding
+✔ fraud assessment
+✔ settlement computation
+✔ approval routing
+✔ officer workflow
+✔ explainable AI decisions
 
 ---
 
-### 1️⃣ Clone Repository
+# Why Agentic AI
+
+Conventional flow:
+
+```text
+Input → Prompt → LLM → Response
+```
+
+ClaimNova flow:
+
+```text
+Claim Context
+    ↓
+Reasoning
+    ↓
+Tool Invocation
+    ↓
+Observation
+    ↓
+Decision Refinement
+    ↓
+Final Settlement Decision
+```
+
+This produces:
+
+* better control
+* auditable reasoning
+* modular execution
+* safer automation
+* business-rule alignment
+
+---
+
+# Core Features
+
+## 📸 AI Damage Assessment
+
+Vehicle damage images are analyzed using vision models to detect:
+
+* damaged parts
+* severity
+* repair vs replacement
+* cost estimate
+* fraud indicators
+* confidence score
+
+Primary model:
+
+**Groq Vision**
+
+Fallback:
+
+**Google Gemini**
+
+Fallback chain:
+
+```text
+Groq → Gemini → Mock Analysis
+```
+
+---
+
+## 🤖 ClaimNova Agent Engine
+
+ClaimNova executes a multi-step reasoning loop.
+
+Available tools:
+
+1. `analyze_damage`
+2. `check_fraud`
+3. `calculate_settlement`
+4. `lookup_history`
+
+Execution pattern:
+
+```text
+THOUGHT
+↓
+ACTION
+↓
+ACTION_INPUT
+↓
+OBSERVATION
+↓
+NEXT THOUGHT
+↓
+FINAL ANSWER
+```
+
+Every execution stores:
+
+* iteration logs
+* reasoning trace
+* selected tools
+* observations
+* final recommendation
+* confidence score
+* fraud score
+
+This enables **Explainable AI**.
+
+---
+
+## ⚙ Configurable Prompt + Policy Layer
+
+Operational rules are centralized in:
+
+```text
+src/config/agent-config.ts
+```
+
+Configurable parameters include:
+
+### Models
+
+* vision model
+* reasoning model
+* fallback model
+
+### AI Controls
+
+* max iterations
+* token limits
+* temperature
+* delay controls
+
+### Fraud Rules
+
+* fraud thresholds
+* fraud signals
+* escalation conditions
+
+### Settlement Rules
+
+* deductible slabs
+* depreciation schedules
+* labour rate tiers
+* approval limits
+* confidence thresholds
+
+### Tool Execution
+
+* configurable tool order
+
+No business logic rewrite required.
+
+---
+
+# Fraud Detection Engine
+
+Fraud detection evaluates:
+
+* EXIF anomalies
+* timestamp mismatch
+* suspicious angles
+* staged damage indicators
+* metadata inconsistency
+* prior damage evidence
+* claim history frequency
+
+Fraud classification:
+
+```text
+0–29   → Low Risk
+30–69  → Medium Risk
+70+    → High Risk
+```
+
+Routing:
+
+* Low → Auto approve possible
+* Medium → Manual review
+* High → Escalate
+
+---
+
+# IRDAI-Compliant Settlement Engine
+
+ClaimNova computes settlement using:
+
+* depreciation schedules
+* compulsory deductible
+* zero depreciation add-on logic
+* NCB adjustments
+* labour rate tiers
+* IDV validation
+
+Settlement pipeline:
+
+```text
+Gross Cost
+ ↓
+Depreciation
+ ↓
+NCB Adjustment
+ ↓
+Deductible
+ ↓
+Final Approved Amount
+```
+
+---
+
+# System Architecture
+
+## High-Level Flow
+
+```text
+Claimant
+   ↓
+Claim Submission
+   ↓
+Document Upload
+   ↓
+Vision Analysis
+   ↓
+Fraud Engine
+   ↓
+ClaimNova Agent Loop
+   ↓
+Settlement Engine
+   ↓
+Decision Routing
+   ↓
+Officer / Surveyor / Admin Workflow
+   ↓
+Database + Notifications
+```
+
+---
+
+## Architecture Diagrams
+
+### System Architecture
+
+![System Architecture](docs/architecture/system-architecture.png)
+
+### ClaimNova Agent Flow
+
+![ClaimNova Agent Flow](docs/architecture/claimnova-agent-flow.png)
+
+### Database ER Diagram
+
+![Database ER Diagram](docs/architecture/database-er-diagram.png)
+
+---
+
+# API Documentation
+
+Detailed API docs:
+
+📄 [API Reference](docs/API.md)
+
+Coverage includes:
+
+* Authentication APIs
+* Claims APIs
+* AI Analysis APIs
+* Agent Execution APIs
+* Officer APIs
+* Surveyor APIs
+* Admin APIs
+
+---
+
+# Testing
+
+ClaimNova validates reliability using:
+
+## 1) Automated Unit Testing
+
+Implemented with **Vitest**
+
+Coverage:
+
+* settlement calculation
+* fraud classification
+* approval logic
+* decision routing
+
+## 2) Manual Scenario Validation
+
+Scenarios validated:
+
+* low fraud + low amount → auto approve
+* medium fraud → manual review
+* very high fraud → escalate
+* high amount → manual review
+* low confidence → manual review
+
+Detailed testing:
+
+📄 [Testing Documentation](docs/TESTING.md)
+
+---
+
+# Security
+
+Implemented:
+
+✔ JWT authentication
+✔ role-based access control
+✔ secure cookies
+✔ image sanitization
+✔ environment-based secret management
+✔ controlled AI execution limits
+✔ bounded iteration loops
+
+Planned:
+
+* rate limiting
+* audit logs
+* secret rotation automation
+
+---
+
+# Tech Stack
+
+## Frontend
+
+* React
+* Next.js App Router
+* Tailwind CSS
+* Material UI
+* ShadCN UI
+* Framer Motion
+
+## Backend
+
+* Next.js API Routes
+* JWT Auth
+* RBAC
+
+## Database
+
+* PostgreSQL
+* Supabase
+* Drizzle ORM
+
+## AI
+
+* Groq
+* Gemini
+
+## Services
+
+* Fast2SMS
+* Courier
+* Resend
+
+---
+
+# Project Structure
+
+```text
+Ai-ClaimSettle/
+├── docs/
+│   ├── API.md
+│   ├── ARCHITECTURE.md
+│   ├── TESTING.md
+│   └── architecture/
+│       ├── system-architecture.png
+│       ├── claimnova-agent-flow.png
+│       └── database-er-diagram.png
+│
+├── src/
+├── public/
+├── package.json
+├── README.md
+└── .env.example
+```
+
+---
+
+# Setup
+
+Clone:
 
 ```bash
-git clone https://github.com/NitinChugh13/AIClaimSettle.git
-cd AIClaimSettle
+git clone <repo-url>
+cd Ai-ClaimSettle
+```
 
-### Installation
+Install:
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/NitinChugh13/AIClaimSettle.git
-    cd AIClaimSettle
-    ```
+```bash
+npm install
+```
 
-2.  **Install dependencies**
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
+Configure:
 
-3.  **Configure Environment Variables**
-    Rename `.env.example` (or configure a new `.env.local` file) with your credentials:
-    ```env
-    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-    DATABASE_URL=your_supabase_postgres_string
-    GEMINI_API_KEY=your_google_ai_key
-    ```
+```bash
+cp .env.example .env.local
+```
 
-4.  **Run Database Migrations**
-    ```bash
-    npx drizzle-kit push
-    ```
+Run:
 
-5.  **Start the Development Server**
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3000](http://localhost:3000) to view the application.
+```bash
+npm run dev
+```
 
+Tests:
 
-*Built with passion to streamline the future of insurance.*
+```bash
+npm run test
+```
 
+---
 
+# Deployment
+
+**Frontend:** Vercel
+**Database:** Supabase PostgreSQL
+
+Production:
+
+https://ai-claims-settle.vercel.app/
+
+---
+
+# Future Roadmap
+
+Planned upgrades:
+
+* dynamic planner layer
+* persistent memory
+* adaptive tool selection
+* self-reflection loop
+* admin prompt editor
+* configuration dashboard
+* CI/CD pipeline
+* Docker support
+* observability & tracing
+
+---
+
+# Conclusion
+
+ClaimNova demonstrates how **Agentic AI can power regulated, real-world operational workflows** through:
+
+* reasoning
+* tool orchestration
+* fraud awareness
+* policy control
+* explainability
+* scalable automation
+
+**ClaimSettle AI is not simply an AI wrapper — it is an explainable decision engine for motor claims automation.**
