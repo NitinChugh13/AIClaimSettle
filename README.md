@@ -307,18 +307,9 @@ Database + Notifications
 
 ## Architecture Diagrams
 
-### System Architecture
+## Architecture Overview
 
-![System Architecture](docs/architecture/system-architecture.png)
-
-### ClaimNova Agent Flow
-
-![ClaimNova Agent Flow](docs/architecture/claimnova-agent-flow.png)
-
-### Database ER Diagram
-
-![Database ER Diagram](docs/architecture/database-er-diagram.png)
-
+![ClaimNova Architecture](docs/architecture/architecture-overview.png)
 ---
 
 # API Documentation
