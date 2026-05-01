@@ -4,6 +4,7 @@ import sharp from 'sharp';
 import { buildDamageAnalysisPrompt } from './prompts';
 import type { AIAnalysisResult, Policy } from '@/types';
 import { getVehicleAgeMonths, getCityTier } from '@/lib/pricing/depreciation';
+import { AgentConfig } from '@/config/agent-config'
 
 let groqClient: Groq | null = null;
 
@@ -24,8 +25,8 @@ async function optimizeImage(base64: string): Promise<string> {
     try {
         const buffer = Buffer.from(base64, 'base64');
         const optimizedBuffer = await sharp(buffer)
-            .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 80 })
+            .resize(AgentConfig.vision.imageMaxPx, AgentConfig.vision.imageMaxPx, { fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: AgentConfig.vision.imageQuality })
             .toBuffer();
         return optimizedBuffer.toString('base64');
     } catch (error) {
@@ -82,7 +83,8 @@ export async function analyzeWithGroq(input: AnalysisInput): Promise<AIAnalysisR
 
     // Send payload
     const response = await client.chat.completions.create({
-        model: 'llama-3.2-90b-vision-preview',
+       model: AgentConfig.models.vision,
+        
         messages: [
             {
                 role: 'user',

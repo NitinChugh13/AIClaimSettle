@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+// import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ClaimFormData } from '@/app/claim/new/page';
 import {
     Box,
@@ -32,10 +33,32 @@ interface Props {
 }
 
 export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
+    // const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [agentRun, setAgentRun] = useState<any>(null)
+    const [agentLoading, setAgentLoading] = useState(false)
+    const [activeTab, setActiveTab] = useState<'summary' | 'reasoning'>('summary')
+    const agentCalled = useRef(false)
     const analysis = formData.aiAnalysis;
     const policy = formData.policy;
     const claimId = formData.claimId;
+
+    useEffect(() => {
+         if (!claimId || agentCalled.current) return
+         agentCalled.current = true
+         setAgentLoading(true)
+         fetch('/api/agent/analyze', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ claimId })
+         })
+           .then(r => r.json())
+           .then(data => {
+             if (data.success) setAgentRun(data.agentRun)
+           })
+           .catch(err => console.error('Agent error:', err))
+           .finally(() => setAgentLoading(false))
+       }, [claimId])
 
     if (!analysis || !policy || !claimId) {
         return (
@@ -47,6 +70,8 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
             </Box>
         );
     }
+
+
 
     const ai_approved_amount = analysis.total_estimate.final_claim_amount;
 
@@ -103,8 +128,35 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
                     <Typography variant="body2" fontWeight="bold" sx={{ color: '#2D5F9E' }}>Claim #{formData.claimNumber}</Typography>
                 </Stack>
             </Box>
+            {/* Tab Switcher */}
+            <Box sx={{ display: 'flex', gap: 1, mb: 3, bgcolor: '#F0F6FF', borderRadius: '16px', p: 0.5 }}>
+              <Button
+                fullWidth
+                onClick={() => setActiveTab('summary')}
+                sx={{
+                  borderRadius: '12px', py: 1, fontWeight: 700,
+                  bgcolor: activeTab === 'summary' ? 'white' : 'transparent',
+                  color: activeTab === 'summary' ? '#1E3A5F' : '#8DA5BE',
+                  boxShadow: activeTab === 'summary' ? '0 2px 8px rgba(0,0,0,0.1)' : 'none'
+                }}
+              >Assessment Summary</Button>
+              <Button
+                fullWidth
+                onClick={() => setActiveTab('reasoning')}
+                sx={{
+                  borderRadius: '12px', py: 1, fontWeight: 700,
+                  bgcolor: activeTab === 'reasoning' ? 'white' : 'transparent',
+                  color: activeTab === 'reasoning' ? '#1E3A5F' : '#8DA5BE',
+                  boxShadow: activeTab === 'reasoning' ? '0 2px 8px rgba(0,0,0,0.1)' : 'none'
+                }}
+              >
+                AI Reasoning {agentLoading && <CircularProgress size={12} sx={{ ml: 1 }} />}
+              </Button>
+            </Box>
 
             {/* AI Summary Card */}
+            {activeTab === 'summary' && (
+<>
             <Paper sx={{
                 p: 4, mb: 4, borderRadius: '24px',
                 bgcolor: 'white', border: '1px solid #CBD8EA',
@@ -147,6 +199,62 @@ export default function ResultsStep({ formData, onSubmit, onBack }: Props) {
                     ))}
                 </Box>
             </Paper>
+            </>
+)}
+
+{activeTab === 'reasoning' && (
+  <Box sx={{ mb: 4 }}>
+    {agentLoading && (
+      <Box sx={{ textAlign: 'center', py: 6 }}>
+        <CircularProgress sx={{ color: '#2D5F9E', mb: 2 }} />
+        <Typography variant="body2" color="#5B7692" fontWeight={600}>
+          ClaimNova Agent is analyzing your claim...
+        </Typography>
+      </Box>
+    )}
+    {agentRun && agentRun.steps.map((step: any, i: number) => (
+      <Paper key={i} sx={{ p: 3, mb: 2, borderRadius: '16px', border: '1px solid #CBD8EA' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+          <Box sx={{
+            width: 28, height: 28, borderRadius: '50%',
+            bgcolor: step.action === 'FINAL_DECISION' ? '#0F9D6A' : '#2D5F9E',
+            color: 'white', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontSize: '13px', fontWeight: 800
+          }}>{step.iteration}</Box>
+          <Typography variant="subtitle2" fontWeight={800} sx={{ color: '#1E3A5F', textTransform: 'uppercase' }}>
+            {step.action === 'analyze_damage' ? 'Damage Analysis' :
+             step.action === 'check_fraud' ? 'Fraud Detection' :
+             step.action === 'calculate_settlement' ? 'Cost Calculation' :
+             step.action === 'lookup_history' ? 'Claim History Check' :
+             step.action === 'FINAL_DECISION' ? 'Final Decision' : step.action}
+          </Typography>
+          <Chip label={`${step.durationMs}ms`} size="small" sx={{ ml: 'auto', fontSize: '11px', bgcolor: '#F0F6FF' }} />
+        </Box>
+        <Box sx={{ bgcolor: '#F8FAFD', borderRadius: '10px', p: 2, mb: 1.5 }}>
+          <Typography variant="caption" fontWeight={800} color="#8DA5BE">REASONING</Typography>
+          <Typography variant="body2" sx={{ color: '#344054', mt: 0.5, lineHeight: 1.6 }}>{step.thought}</Typography>
+        </Box>
+        <Box sx={{ bgcolor: step.action === 'FINAL_DECISION' ? '#F0FFF8' : '#F0F6FF', borderRadius: '10px', p: 2 }}>
+          <Typography variant="caption" fontWeight={800} color="#8DA5BE">RESULT</Typography>
+          <Typography variant="body2" sx={{ color: '#344054', mt: 0.5, lineHeight: 1.6 }}>{step.observation}</Typography>
+        </Box>
+      </Paper>
+    ))}
+    {agentRun && (
+      <Paper sx={{ p: 3, borderRadius: '16px', bgcolor: '#F0FFF8', border: '2px solid #0F9D6A' }}>
+        <Typography variant="subtitle2" fontWeight={800} color="#0F9D6A" sx={{ mb: 1 }}>
+          AGENT FINAL DECISION: {agentRun.finalDecision.recommendation.toUpperCase().replace('_', ' ')}
+        </Typography>
+        <Typography variant="body2" color="#344054">{agentRun.finalDecision.reasoning}</Typography>
+        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+          <Chip label={`Confidence: ${agentRun.finalDecision.confidence}%`} sx={{ bgcolor: '#E8F5E9', fontWeight: 700 }} />
+          <Chip label={`Fraud Score: ${agentRun.finalDecision.fraudScore}/100`} sx={{ bgcolor: '#FFF3E0', fontWeight: 700 }} />
+          <Chip label={`${agentRun.totalIterations} steps`} sx={{ bgcolor: '#E3F2FD', fontWeight: 700 }} />
+        </Box>
+      </Paper>
+    )}
+  </Box>
+)}
 
             <Alert icon={<InfoIcon fontSize="inherit" />} severity="info" sx={{ mb: 4, borderRadius: '16px' }}>
                 You can choose to settle instantly based on AI assessment or request a physical survey if you prefer a manual inspection.
