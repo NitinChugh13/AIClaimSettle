@@ -17,15 +17,19 @@
 
 # 🌐 Live Demo
 
-**Application:** https://ai-claims-settle.vercel.app/
+# 🌐 Application Access
 
-Experience:
+## Claimant Portal
 
-* AI-driven vehicle damage assessment
-* Explainable claim processing
-* Fraud detection pipeline
-* Automated settlement recommendation
-* Multi-role workflow (Claimant / Officer / Surveyor / Admin)
+🔗 https://ai-claims-settle.vercel.app/
+
+## Officer Portal
+
+🔗 https://ai-claims-settle.vercel.app/officer/login
+
+## Surveyor Portal
+
+🔗 https://ai-claims-settle.vercel.app/surveyor/login
 
 ---
 
@@ -484,15 +488,26 @@ ClaimNova supports both **cloud deployment** and **containerized local deploymen
 
 * **Frontend Hosting:** Vercel
 * **Database:** Supabase PostgreSQL
-* **Application URL:** https://ai-claims-settle.vercel.app/
+
+### Live Portals
+
+* **Claimant Portal:** https://ai-claims-settle.vercel.app/
+* **Officer Portal:** https://ai-claims-settle.vercel.app/officer/login
+* **Surveyor Portal:** https://ai-claims-settle.vercel.app/surveyor/login
 
 ## Containerized Deployment
 
 * **Runtime:** Docker Compose
-* **Local URL:** http://localhost:3000
 * **Environment Config:** `.env.local`
 
+### Local Access URLs
+
+* **Claimant Portal:** http://localhost:3000
+* **Officer Portal:** http://localhost:3000/officer/queue
+* **Surveyor Portal:** http://localhost:3000/surveyor
+
 📄 [Docker Setup Documentation](docs/DOCKER.md)
+
 
 ---
 
