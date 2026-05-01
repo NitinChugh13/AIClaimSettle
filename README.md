@@ -477,8 +477,10 @@ npm run test
 ---
 
 # Deployment
+📄 [Docker Setup Documentation](docs/docs/DOCKER.md)
 
-📄 [Docker Setup](docs/DOCKER.md)
+
+
 **Frontend:** Vercel
 **Database:** Supabase PostgreSQL
 - Docker Compose deployment support
