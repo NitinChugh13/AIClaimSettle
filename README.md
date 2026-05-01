@@ -309,7 +309,7 @@ Database + Notifications
 
 ## Architecture Overview
 
-![ClaimNova Architecture](docs/architecture/architecture-overview.png)
+![ClaimNova Architecture](docs/ARCHITECHTURE.md)
 ---
 
 # API Documentation
