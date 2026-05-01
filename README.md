@@ -477,7 +477,7 @@ npm run test
 ---
 
 # Deployment
-📄 [Docker Setup Documentation](docs/docs/DOCKER.md)
+📄 [Docker Setup Documentation](docs/DOCKER.md)
 
 
 
