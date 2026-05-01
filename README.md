@@ -9,6 +9,7 @@
 [![AI](https://img.shields.io/badge/AI-Groq%20%7C%20Gemini-purple?style=for-the-badge)]
 [![Architecture](https://img.shields.io/badge/Architecture-Agentic%20AI-orange?style=for-the-badge)]
 [![Testing](https://img.shields.io/badge/Testing-Vitest-green?style=for-the-badge)]
+[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=for-the-badge&logo=docker&logoColor=white)]()
 
 > **ClaimSettle AI** is a full-stack intelligent insurance claims platform powered by **ClaimNova**, a configurable multi-step reasoning engine designed for motor insurance damage assessment, fraud analysis, and IRDAI-compliant settlement automation.
 
@@ -477,8 +478,10 @@ npm run test
 
 # Deployment
 
+📄 [Docker Setup](docs/DOCKER.md)
 **Frontend:** Vercel
 **Database:** Supabase PostgreSQL
+- Docker Compose deployment support
 
 Production:
 
