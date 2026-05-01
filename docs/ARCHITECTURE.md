@@ -53,7 +53,7 @@ Supabase Storage + PostgreSQL
 
 ## Complete Architecture
 
-![ClaimNova Architecture Overview](architecture/architecture-overview.png)
+![ClaimNova Architecture Overview](architechture/architecture-overview.png)
 
 ---
 
