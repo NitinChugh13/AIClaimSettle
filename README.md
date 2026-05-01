@@ -305,7 +305,7 @@ Database + Notifications
 
 ---
 
-## Architecture Diagrams
+## Architecture Diagram
 
 ## Architecture Overview
 
