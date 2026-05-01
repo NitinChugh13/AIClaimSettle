@@ -481,7 +481,7 @@ npm run test
 
 
 
-**Frontend:** Vercel
+**Frontend:** Vercel \n
 **Database:** Supabase PostgreSQL
 - Docker Compose deployment support
 
