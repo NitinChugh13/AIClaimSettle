@@ -477,17 +477,22 @@ npm run test
 ---
 
 # Deployment
+
+ClaimNova supports both **cloud deployment** and **containerized local deployment**.
+
+## Production Deployment
+
+* **Frontend Hosting:** Vercel
+* **Database:** Supabase PostgreSQL
+* **Application URL:** https://ai-claims-settle.vercel.app/
+
+## Containerized Deployment
+
+* **Runtime:** Docker Compose
+* **Local URL:** http://localhost:3000
+* **Environment Config:** `.env.local`
+
 📄 [Docker Setup Documentation](docs/DOCKER.md)
-
-
-
-**Frontend:** Vercel \n
-**Database:** Supabase PostgreSQL
-- Docker Compose deployment support
-
-Production:
-
-https://ai-claims-settle.vercel.app/
 
 ---
 
