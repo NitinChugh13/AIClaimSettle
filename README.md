@@ -2,7 +2,11 @@
 
 ### *Powering ClaimSettle AI — Intelligent, Explainable & Configurable Motor Insurance Automation*
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-00C853?style=for-the-badge\&logo=vercel\&logoColor=white)](https://ai-claims-settle.vercel.app/)
+## 🎥 Project Demo Video
+
+📹 **Watch Full Demo:**
+🔗 [View Demo Video](YOUR_GOOGLE_DRIVE_LINK_HERE)
+
 [![Framework](https://img.shields.io/badge/Framework-Next.js-black?style=for-the-badge\&logo=nextdotjs)]
 [![Database](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge\&logo=supabase)]
 [![ORM](https://img.shields.io/badge/ORM-Drizzle-blue?style=for-the-badge)]
