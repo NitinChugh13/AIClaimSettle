@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         // 4. Insert into users table
         const { error: insertError } = await supabaseAdmin
             .from('users')
-            .insert([{ full_name, mobile, email, password_hash }])
+            .insert([{ full_name, mobile, email: email || null, password_hash }])
             .select('id')
             .single();
 

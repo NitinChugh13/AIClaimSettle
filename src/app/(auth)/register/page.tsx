@@ -86,10 +86,10 @@ export default function RegisterPage() {
                 setError('');
             } else {
                 setError(data.error || 'Registration failed');
-                setIsSubmitting(false);
             }
         } catch (error) {
             setError('Network error during registration');
+        } finally {
             setIsSubmitting(false);
         }
     };
@@ -112,10 +112,10 @@ export default function RegisterPage() {
                 // Redirect will be handled by the useEffect above
             } else {
                 setError(data.error || 'Invalid OTP');
-                setIsSubmitting(false);
             }
         } catch (error) {
             setError('Network error verifying OTP');
+        } finally {
             setIsSubmitting(false);
         }
     };
@@ -143,6 +143,338 @@ export default function RegisterPage() {
             setIsSubmitting(false);
         }
     };
+
+    const renderRegisterStep = () => (
+        <motion.form
+            key="step1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+            onSubmit={handleRegister}
+            aria-label="User registration form step 1"
+            noValidate
+        >
+            <Stack spacing={3}>
+                {error && (
+                    <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                        {error}
+                    </Alert>
+                )}
+
+                <TextField
+                    fullWidth
+                    label="Full Name"
+                    id="fullName"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Rahul Sharma"
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <PersonIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                            </InputAdornment>
+                        ),
+                    }}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            height: '52px',
+                            borderRadius: '14px',
+                            backgroundColor: '#fff',
+                            '& fieldset': { borderColor: '#E5E7EB' },
+                            '&:hover fieldset': { borderColor: '#2563EB' },
+                            '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                        },
+                    }}
+                />
+
+                <TextField
+                    fullWidth
+                    label="Mobile Number"
+                    id="mobile"
+                    type="tel"
+                    required
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
+                    placeholder="9876543210"
+                    inputProps={{
+                        pattern: '[0-9]{10}',
+                        maxLength: 10,
+                    }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <PhoneIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                            </InputAdornment>
+                        ),
+                        prefix: '+91 ',
+                    }}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            height: '52px',
+                            borderRadius: '14px',
+                            backgroundColor: '#fff',
+                            '& fieldset': { borderColor: '#E5E7EB' },
+                            '&:hover fieldset': { borderColor: '#2563EB' },
+                            '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                        },
+                    }}
+                />
+
+                <TextField
+                    fullWidth
+                    label="Email (Optional)"
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="rahul@example.com"
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <EmailIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                            </InputAdornment>
+                        ),
+                    }}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            height: '52px',
+                            borderRadius: '14px',
+                            backgroundColor: '#fff',
+                            '& fieldset': { borderColor: '#E5E7EB' },
+                            '&:hover fieldset': { borderColor: '#2563EB' },
+                            '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                        },
+                    }}
+                />
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                    <TextField
+                        fullWidth
+                        label="Password"
+                        id="password"
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        inputProps={{
+                            minLength: 8,
+                        }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <LockIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                                </InputAdornment>
+                            ),
+                        }}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                height: '52px',
+                                borderRadius: '14px',
+                                backgroundColor: '#fff',
+                                '& fieldset': { borderColor: '#E5E7EB' },
+                                '&:hover fieldset': { borderColor: '#2563EB' },
+                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                            },
+                        }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Confirm"
+                        id="confirmPassword"
+                        type="password"
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        error={!!(confirmPassword && password !== confirmPassword)}
+                        inputProps={{
+                            minLength: 8,
+                        }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <LockIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
+                                </InputAdornment>
+                            ),
+                        }}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                height: '52px',
+                                borderRadius: '14px',
+                                backgroundColor: '#fff',
+                                '& fieldset': { borderColor: '#E5E7EB' },
+                                '&:hover fieldset': { borderColor: '#2563EB' },
+                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                                '&.Mui-error fieldset': { borderColor: '#EF4444' },
+                            },
+                        }}
+                    />
+                </Box>
+
+                {confirmPassword && password !== confirmPassword && (
+                    <Typography sx={{ color: '#DC2626', fontSize: '14px', fontWeight: 500 }}>
+                        Passwords do not match
+                    </Typography>
+                )}
+
+                <MuiButton
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    disabled={isSubmitting || password !== confirmPassword || mobile.length !== 10}
+                    sx={{
+                        height: '52px',
+                        backgroundColor: '#2563EB',
+                        color: '#fff',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        borderRadius: '14px',
+                        textTransform: 'none',
+                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                        '&:hover': {
+                            backgroundColor: '#1D4ED8',
+                        },
+                        '&:disabled': {
+                            backgroundColor: '#D1D5DB',
+                            color: '#fff',
+                        },
+                    }}
+                >
+                    {isSubmitting ? (
+                        <CircularProgress size={24} sx={{ color: 'inherit' }} />
+                    ) : (
+                        'Send OTP & Continue'
+                    )}
+                </MuiButton>
+
+                <Box sx={{ textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: '14px', color: '#6B7280' }}>
+                        Already have an account?{' '}
+                        <Link href="/login" style={{ color: '#2563EB', fontWeight: 600, textDecoration: 'none' }}>
+                            Login here
+                        </Link>
+                    </Typography>
+                </Box>
+            </Stack>
+        </motion.form>
+    );
+
+    const renderOtpStep = () => (
+        <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+        >
+            <Stack spacing={3}>
+                <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827', mb: 1 }}>
+                        Verify your mobile
+                    </Typography>
+                    <Typography sx={{ color: '#6B7280', fontSize: '14px' }}>
+                        We sent a 6-digit code to <span style={{ fontWeight: 600, color: '#374151' }}>+91 *****{mobile.slice(-4)}</span>
+                    </Typography>
+                    <MuiButton
+                        onClick={() => setStep(1)}
+                        sx={{
+                            mt: 1,
+                            fontSize: '12px',
+                            color: '#2563EB',
+                            fontWeight: 500,
+                            textTransform: 'none',
+                            '&:hover': {
+                                background: 'transparent',
+                                textDecoration: 'underline',
+                            },
+                        }}
+                    >
+                        Wrong number? Edit
+                    </MuiButton>
+                </Box>
+
+                {error && (
+                    <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                        {error}
+                    </Alert>
+                )}
+
+                <Box sx={{ py: 2 }}>
+                    <label htmlFor="otpInput" className="sr-only">Enter 6-digit OTP code</label>
+                    <OtpInput
+                        length={6}
+                        onComplete={handleVerifyOtp}
+                        onChange={setOtpCode}
+                        disabled={isSubmitting}
+                        error={!!error}
+                    />
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#6B7280', textAlign: 'center' }}>
+                        Enter the 6-digit code sent to <span className="font-semibold text-gray-800">{mobile}</span>
+                    </Typography>
+                </Box>
+
+                <form onSubmit={(e) => { e.preventDefault(); handleVerifyOtp(); }}>
+                    <MuiButton
+                        fullWidth
+                        variant="contained"
+                        size="large"
+                        type="submit"
+                        disabled={isSubmitting || otpCode.length !== 6}
+                        sx={{
+                            height: '52px',
+                            backgroundColor: '#2563EB',
+                            color: '#fff',
+                            fontSize: '16px',
+                            fontWeight: 700,
+                            borderRadius: '14px',
+                            textTransform: 'none',
+                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                            '&:hover': {
+                                backgroundColor: '#1D4ED8',
+                            },
+                            '&:disabled': {
+                                backgroundColor: '#D1D5DB',
+                                color: '#fff',
+                            },
+                        }}
+                    >
+                        {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Verify & Create Account'}
+                    </MuiButton>
+                </form>
+
+                <Stack direction="row" justifyContent="center" alignItems="center" spacing={1}>
+                    <Typography variant="body2" color="text.secondary">
+                        Resend code in{' '}
+                    </Typography>
+                    {timeLeft > 0 ? (
+                        <span style={{ fontWeight: 600, color: '#374151', fontFamily: 'monospace' }}>
+                            00:{timeLeft.toString().padStart(2, '0')}
+                        </span>
+                    ) : (
+                        <MuiButton
+                            onClick={handleResendOtp}
+                            disabled={!canResend || isSubmitting}
+                            sx={{
+                                fontSize: '14px',
+                                color: '#2563EB',
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                '&:hover': {
+                                    color: '#1D4ED8',
+                                },
+                                '&:disabled': {
+                                    color: '#D1D5DB',
+                                },
+                            }}
+                        >
+                            Resend OTP
+                        </MuiButton>
+                    )}
+                </Stack>
+            </Stack>
+        </motion.div>
+    );
 
     return (
         <div
@@ -223,337 +555,7 @@ export default function RegisterPage() {
                     </div>
 
                     <AnimatePresence mode="wait">
-                        {step === 1 ? (
-                            <motion.form
-                                key="step1"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                transition={{ duration: 0.3 }}
-                                onSubmit={handleRegister}
-                                aria-label="User registration form step 1"
-                                noValidate
-                            >
-                                <Stack spacing={3}>
-                                    {error && (
-                                        <Alert severity="error" sx={{ borderRadius: '12px' }}>
-                                            {error}
-                                        </Alert>
-                                    )}
-
-                                    <TextField
-                                        fullWidth
-                                        label="Full Name"
-                                        id="fullName"
-                                        required
-                                        value={fullName}
-                                        onChange={(e) => setFullName(e.target.value)}
-                                        placeholder="Rahul Sharma"
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <PersonIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                height: '52px',
-                                                borderRadius: '14px',
-                                                backgroundColor: '#fff',
-                                                '& fieldset': { borderColor: '#E5E7EB' },
-                                                '&:hover fieldset': { borderColor: '#2563EB' },
-                                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
-                                            },
-                                        }}
-                                    />
-
-                                    <TextField
-                                        fullWidth
-                                        label="Mobile Number"
-                                        id="mobile"
-                                        type="tel"
-                                        required
-                                        value={mobile}
-                                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
-                                        placeholder="9876543210"
-                                        inputProps={{
-                                            pattern: '[0-9]{10}',
-                                            maxLength: 10,
-                                        }}
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <PhoneIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
-                                                </InputAdornment>
-                                            ),
-                                            prefix: '+91 ',
-                                        }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                height: '52px',
-                                                borderRadius: '14px',
-                                                backgroundColor: '#fff',
-                                                '& fieldset': { borderColor: '#E5E7EB' },
-                                                '&:hover fieldset': { borderColor: '#2563EB' },
-                                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
-                                            },
-                                        }}
-                                    />
-
-                                    <TextField
-                                        fullWidth
-                                        label="Email (Optional)"
-                                        id="email"
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="rahul@example.com"
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <EmailIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                height: '52px',
-                                                borderRadius: '14px',
-                                                backgroundColor: '#fff',
-                                                '& fieldset': { borderColor: '#E5E7EB' },
-                                                '&:hover fieldset': { borderColor: '#2563EB' },
-                                                '&.Mui-focused fieldset': { borderColor: '#2563EB' },
-                                            },
-                                        }}
-                                    />
-
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-                                        <TextField
-                                            fullWidth
-                                            label="Password"
-                                            id="password"
-                                            type="password"
-                                            required
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            inputProps={{
-                                                minLength: 8,
-                                            }}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <LockIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                            sx={{
-                                                '& .MuiOutlinedInput-root': {
-                                                    height: '52px',
-                                                    borderRadius: '14px',
-                                                    backgroundColor: '#fff',
-                                                    '& fieldset': { borderColor: '#E5E7EB' },
-                                                    '&:hover fieldset': { borderColor: '#2563EB' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#2563EB' },
-                                                },
-                                            }}
-                                        />
-                                        <TextField
-                                            fullWidth
-                                            label="Confirm"
-                                            id="confirmPassword"
-                                            type="password"
-                                            required
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            error={!!(confirmPassword && password !== confirmPassword)}
-                                            inputProps={{
-                                                minLength: 8,
-                                            }}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <LockIcon sx={{ color: '#9CA3AF', fontSize: 20 }} />
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                            sx={{
-                                                '& .MuiOutlinedInput-root': {
-                                                    height: '52px',
-                                                    borderRadius: '14px',
-                                                    backgroundColor: '#fff',
-                                                    '& fieldset': { borderColor: '#E5E7EB' },
-                                                    '&:hover fieldset': { borderColor: '#2563EB' },
-                                                    '&.Mui-focused fieldset': { borderColor: '#2563EB' },
-                                                    '&.Mui-error fieldset': { borderColor: '#EF4444' },
-                                                },
-                                            }}
-                                        />
-                                    </Box>
-
-                                    {confirmPassword && password !== confirmPassword && (
-                                        <Typography sx={{ color: '#DC2626', fontSize: '14px', fontWeight: 500 }}>
-                                            Passwords do not match
-                                        </Typography>
-                                    )}
-
-                                    <MuiButton
-                                        type="submit"
-                                        fullWidth
-                                        variant="contained"
-                                        disabled={isSubmitting || password !== confirmPassword || mobile.length !== 10}
-                                        sx={{
-                                            height: '52px',
-                                            backgroundColor: '#2563EB',
-                                            color: '#fff',
-                                            fontSize: '16px',
-                                            fontWeight: 700,
-                                            borderRadius: '14px',
-                                            textTransform: 'none',
-                                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-                                            '&:hover': {
-                                                backgroundColor: '#1D4ED8',
-                                            },
-                                            '&:disabled': {
-                                                backgroundColor: '#D1D5DB',
-                                                color: '#fff',
-                                            },
-                                        }}
-                                    >
-                                        {isSubmitting ? (
-                                            <CircularProgress size={24} sx={{ color: 'inherit' }} />
-                                        ) : (
-                                            'Send OTP & Continue'
-                                        )}
-                                    </MuiButton>
-
-                                    <Box sx={{ textAlign: 'center' }}>
-                                        <Typography sx={{ fontSize: '14px', color: '#6B7280' }}>
-                                            Already have an account?{' '}
-                                            <Link href="/login" style={{ color: '#2563EB', fontWeight: 600, textDecoration: 'none' }}>
-                                                Login here
-                                            </Link>
-                                        </Typography>
-                                    </Box>
-                                </Stack>
-                            </motion.form>
-                        ) : (
-                            <motion.div
-                                key="step2"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <Stack spacing={3}>
-                                    <Box sx={{ textAlign: 'center' }}>
-                                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827', mb: 1 }}>
-                                            Verify your mobile
-                                        </Typography>
-                                        <Typography sx={{ color: '#6B7280', fontSize: '14px' }}>
-                                            We sent a 6-digit code to <span style={{ fontWeight: 600, color: '#374151' }}>+91 *****{mobile.slice(-4)}</span>
-                                        </Typography>
-                                        <MuiButton
-                                            onClick={() => setStep(1)}
-                                            sx={{
-                                                mt: 1,
-                                                fontSize: '12px',
-                                                color: '#2563EB',
-                                                fontWeight: 500,
-                                                textTransform: 'none',
-                                                '&:hover': {
-                                                    background: 'transparent',
-                                                    textDecoration: 'underline',
-                                                },
-                                            }}
-                                        >
-                                            Wrong number? Edit
-                                        </MuiButton>
-                                    </Box>
-
-                                    {error && (
-                                        <Alert severity="error" sx={{ borderRadius: '12px' }}>
-                                            {error}
-                                        </Alert>
-                                    )}
-
-                                    <Box sx={{ py: 2 }}>
-                                        <label htmlFor="otpInput" className="sr-only">Enter 6-digit OTP code</label>
-                                        <OtpInput
-                                            length={6}
-                                            onComplete={(code) => {
-                                                setOtpCode(code);
-                                            }}
-                                            onChange={setOtpCode}
-                                            disabled={isSubmitting}
-                                        />
-                                        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#6B7280', textAlign: 'center' }}>
-                                            Enter the 6-digit code sent to your phone
-                                        </Typography>
-                                    </Box>
-
-                                    <MuiButton
-                                        onClick={handleVerifyOtp}
-                                        fullWidth
-                                        variant="contained"
-                                        disabled={isSubmitting || otpCode.length !== 6}
-                                        sx={{
-                                            height: '52px',
-                                            backgroundColor: '#2563EB',
-                                            color: '#fff',
-                                            fontSize: '16px',
-                                            fontWeight: 700,
-                                            borderRadius: '14px',
-                                            textTransform: 'none',
-                                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-                                            '&:hover': {
-                                                backgroundColor: '#1D4ED8',
-                                            },
-                                            '&:disabled': {
-                                                backgroundColor: '#D1D5DB',
-                                                color: '#fff',
-                                            },
-                                        }}
-                                    >
-                                        {isSubmitting ? (
-                                            <CircularProgress size={24} sx={{ color: 'inherit' }} />
-                                        ) : (
-                                            'Verify & Create Account'
-                                        )}
-                                    </MuiButton>
-
-                                    <Box sx={{ textAlign: 'center' }}>
-                                        {timeLeft > 0 ? (
-                                            <Typography variant="caption" sx={{ color: '#6B7280' }}>
-                                                Resend code in{' '}
-                                                <span style={{ fontWeight: 600, color: '#374151', fontFamily: 'monospace' }}>
-                                                    00:{timeLeft.toString().padStart(2, '0')}
-                                                </span>
-                                            </Typography>
-                                        ) : (
-                                            <MuiButton
-                                                onClick={handleResendOtp}
-                                                disabled={!canResend || isSubmitting}
-                                                sx={{
-                                                    fontSize: '14px',
-                                                    color: '#2563EB',
-                                                    fontWeight: 600,
-                                                    textTransform: 'none',
-                                                    '&:hover': {
-                                                        color: '#1D4ED8',
-                                                    },
-                                                    '&:disabled': {
-                                                        color: '#D1D5DB',
-                                                    },
-                                                }}
-                                            >
-                                                Resend OTP
-                                            </MuiButton>
-                                        )}
-                                    </Box>
-                                </Stack>
-                            </motion.div>
-                        )}
+                        {step === 1 ? renderRegisterStep() : renderOtpStep()}
                     </AnimatePresence>
                 </Paper>
             </motion.div>
