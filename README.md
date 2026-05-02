@@ -2,7 +2,6 @@
 
 ### *Powering ClaimSettle AI — Intelligent, Explainable & Configurable Motor Insurance Automation*
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-00C853?style=for-the-badge\&logo=vercel\&logoColor=white)](https://ai-claims-settle.vercel.app/)
 [![Framework](https://img.shields.io/badge/Framework-Next.js-black?style=for-the-badge\&logo=nextdotjs)]
 [![Database](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge\&logo=supabase)]
 [![ORM](https://img.shields.io/badge/ORM-Drizzle-blue?style=for-the-badge)]
@@ -15,17 +14,25 @@
 
 ---
 
-# 🌐 Live Demo
+## 🎥 Project Demo Video
 
-**Application:** https://ai-claims-settle.vercel.app/
+📹 **Watch Full Demo:**
+🔗 [View Demo Video](https://drive.google.com/file/d/1nUDt9XMnVfc3g1jUjqirxskInA7llBwi/view?usp=sharing)
 
-Experience:
 
-* AI-driven vehicle damage assessment
-* Explainable claim processing
-* Fraud detection pipeline
-* Automated settlement recommendation
-* Multi-role workflow (Claimant / Officer / Surveyor / Admin)
+# 🌐 Application Access
+
+## Claimant Portal
+
+🔗 https://ai-claims-settle.vercel.app/
+
+## Officer Portal
+
+🔗 https://ai-claims-settle.vercel.app/officer/login
+
+## Surveyor Portal
+
+🔗 https://ai-claims-settle.vercel.app/surveyor/login
 
 ---
 
@@ -478,14 +485,32 @@ npm run test
 
 # Deployment
 
-📄 [Docker Setup](docs/DOCKER.md)
-**Frontend:** Vercel
-**Database:** Supabase PostgreSQL
-- Docker Compose deployment support
+ClaimNova supports both **cloud deployment** and **containerized local deployment**.
 
-Production:
+## Production Deployment
 
-https://ai-claims-settle.vercel.app/
+* **Frontend Hosting:** Vercel
+* **Database:** Supabase PostgreSQL
+
+### Live Portals
+
+* **Claimant Portal:** https://ai-claims-settle.vercel.app/
+* **Officer Portal:** https://ai-claims-settle.vercel.app/officer/login
+* **Surveyor Portal:** https://ai-claims-settle.vercel.app/surveyor/login
+
+## Containerized Deployment
+
+* **Runtime:** Docker Compose
+* **Environment Config:** `.env.local`
+
+### Local Access URLs
+
+* **Claimant Portal:** http://localhost:3000
+* **Officer Portal:** http://localhost:3000/officer/queue
+* **Surveyor Portal:** http://localhost:3000/surveyor
+
+📄 [Docker Setup Documentation](docs/DOCKER.md)
+
 
 ---
 
